@@ -1,18 +1,31 @@
 package synergy.cs530.ccsu.mobileauthentication;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.ToggleButton;
+import android.view.View;
+import android.view.View.OnClickListener;
 
-public class DashBoardActivity extends AppCompatActivity {
+
+public class DashBoardActivity extends AppCompatActivity implements OnClickListener {
+    private Button mConfigureToggleButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dash_board);
+        addListenerOnButton();
     }
 
+    public void addListenerOnButton() {
+        mConfigureToggleButton = (Button) findViewById(
+                R.id.fragment_dash_board_toggleButton);
+        mConfigureToggleButton.setOnClickListener(this);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -34,5 +47,14 @@ public class DashBoardActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.fragment_dash_board_toggleButton) {
+            Intent i = new Intent(this, TapCodeActivity.class);
+            startActivity(i);
+        }
+
     }
 }

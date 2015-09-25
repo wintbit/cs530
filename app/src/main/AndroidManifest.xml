@@ -16,6 +16,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".TapCodeActivity"
+            android:label="@string/title_activity_tap_code"
+            android:parentActivityName=".DashBoardActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="synergy.cs530.ccsu.mobileauthentication.DashBoardActivity" />
+        </activity>
     </application>
 
 </manifest>
