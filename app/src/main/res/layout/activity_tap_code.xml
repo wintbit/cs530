@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Retry"
-        android:id="@+id/activity_Tap_Code_Retry_button"
+        android:id="@+id/activity_tap_code_retry_button"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -19,19 +19,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Confirm"
-        android:id="@+id/activity_Tap_Code_Confirm_button"
+        android:id="@+id/activity_tap_code_confirm_button"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
-    <SurfaceView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/activity_Tap_code_surfaceView"
+        android:orientation="vertical"
+        android:id="@+id/activity_tap_code_surfaceView"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/activity_Tap_Code_Confirm_button"
-        android:layout_alignEnd="@+id/activity_Tap_Code_Confirm_button" />
+        android:layout_above="@+id/activity_tap_code_retry_button" />
 
 </RelativeLayout>
