@@ -1,30 +1,39 @@
 package synergy.cs530.ccsu.mobileauthentication;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.ToggleButton;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
+
+import synergy.cs530.ccsu.mobileauthentication.dao.DatabaseManager;
+import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 
 
 public class DashBoardActivity extends AppCompatActivity implements OnClickListener {
-    private Button mConfigureToggleButton;
+
+    private final String TAG = this.getClass().getName();
+    private Button mConfigureButton;
+    private DatabaseManager databaseManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dash_board);
-        addListenerOnButton();
-    }
 
-    public void addListenerOnButton() {
-        mConfigureToggleButton = (Button) findViewById(
+        databaseManager = DatabaseManager.getInstance(getApplicationContext());
+
+        mConfigureButton = (Button) findViewById(
                 R.id.fragment_dash_board_toggleButton);
-        mConfigureToggleButton.setOnClickListener(this);
+        mConfigureButton.setOnClickListener(this);
+
+        if (databaseManager.getRowCount(TapSequenceTableEnum.KEY_ROW_ID) > 0) {
+            mConfigureButton.setText(getResources().getText(R.string.action_reset));
+        }
+
     }
 
     @Override

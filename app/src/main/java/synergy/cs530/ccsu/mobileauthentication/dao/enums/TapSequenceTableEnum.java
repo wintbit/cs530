@@ -22,7 +22,7 @@ import synergy.cs530.ccsu.mobileauthentication.dao.interfaces.TableFieldInterfac
 public enum TapSequenceTableEnum implements TableFieldInterface {
 
 
-    KEY_ROWID("_id", "", "INTEGER PRIMARY KEY AUTOINCREMENT"),
+    KEY_ROW_ID("_id", "", "INTEGER PRIMARY KEY AUTOINCREMENT"),
     KEY_SEQUENCE_ID("sequence_id", "", "NUMERIC "),
     KEY_X_AXIS("x_axis", "", "NUMERIC"),
     KEY_Y_AXIS("y_axis", "", "NUMERIC"),

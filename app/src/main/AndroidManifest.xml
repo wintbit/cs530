@@ -24,6 +24,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="synergy.cs530.ccsu.mobileauthentication.DashBoardActivity" />
         </activity>
+        <activity
+            android:name=".DeveloperDatabaseActivity"
+            android:label="@string/title_activity_developer_database" >
+        </activity>
     </application>
 
 </manifest>

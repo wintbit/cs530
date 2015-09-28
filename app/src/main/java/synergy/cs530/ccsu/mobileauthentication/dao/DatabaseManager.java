@@ -25,12 +25,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import synergy.cs530.ccsu.mobileauthentication.dao.enums.SequenceTableEnum;
 import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 import synergy.cs530.ccsu.mobileauthentication.dao.interfaces.TableFieldInterface;
 import synergy.cs530.ccsu.mobileauthentication.dao.models.Criterion;
@@ -127,10 +125,7 @@ public class DatabaseManager {
 
     private void setDefaultValue() {
 
-        //User
-        map.put(SequenceTableEnum.KEY_ROWID
-                .getTableName(), SequenceTableEnum.values());
-        map.put(TapSequenceTableEnum.KEY_ROWID
+        map.put(TapSequenceTableEnum.KEY_ROW_ID
                 .getTableName(), TapSequenceTableEnum.values());
     }
 
@@ -215,7 +210,7 @@ public class DatabaseManager {
      *
      * @param tableField a valid TableFieldInterface, use the name of the table and field name
      * @param input      a associated value with the field name
-     * @return a valid number of rows within a table or -1 if no rows are found.
+     * @return a valid number of rows within a table or 0 if no rows are found.
      */
     public synchronized int getRowCount(TableFieldInterface tableField, int input) {
         int rowCount = -1;
@@ -241,7 +236,7 @@ public class DatabaseManager {
      *
      * @param tableField a valid TableFieldInterface, use the name of the table and field name
      * @param input      a associated value with the field name
-     * @return a valid number of rows within a table or -1 if no rows are found.
+     * @return a valid number of rows within a table or 0 if no rows are found.
      */
     public synchronized int getRowCount(TableFieldInterface tableField, String input) {
         int rowCount = -1;
@@ -271,7 +266,7 @@ public class DatabaseManager {
      *
      * @param tableField a valid TableFieldInterface, use the name of the table and field name
      * @param criterions a collection of where criterias in with a query can be decided by.
-     * @return a valid number of rows within a table or -1 if no rows are found.
+     * @return a valid number of rows within a table or 0 if no rows are found.
      */
     public synchronized int getCount(TableFieldInterface tableField,
                                      ArrayList<Criterion> criterions) {
