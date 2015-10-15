@@ -26,7 +26,9 @@ public enum TapSequenceTableEnum implements TableFieldInterface {
     KEY_SEQUENCE_ID("sequence_id", "", "NUMERIC "),
     KEY_X_AXIS("x_axis", "", "NUMERIC"),
     KEY_Y_AXIS("y_axis", "", "NUMERIC"),
-    KEY_TIME("time", "", "NUMERIC")
+    KEY_TOUCHDOWN("touch_down", "", "NUMERIC"),
+    Key_TOUCHUP("touch_up","","NUMERIC")
+
 ;
 
     private final String fieldName;
