@@ -59,6 +59,10 @@ public class Criterion {
         this.rightValue = Integer.toString(rightValue);
     }
 
+    public Criterion(TableFieldInterface leftValue, long rightValue) {
+        this.leftValue = leftValue.getColumnName();
+        this.rightValue = Long.toString(rightValue);
+    }
     public Criterion(TableFieldInterface leftValue, String rightValue) {
         this.leftValue = leftValue.getColumnName();
         this.rightValue = getSQLString(rightValue);
