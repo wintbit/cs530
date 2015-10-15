@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +32,7 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
     private ArrayList<TapModel> currentSequence;
     private LinearLayout linearLayout;
     private TextView infoTextView;
+    private RadioGroup sequenceRadioGroup;
     /**
      * represents the current position within the entered sequence
      */
@@ -42,6 +44,10 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
         setContentView(R.layout.activity_tap_code);
         map = new HashMap<>();
         databaseManager = DatabaseManager.getInstance(getApplicationContext());
+
+        sequenceRadioGroup   = (RadioGroup) findViewById(R.id.activity_tap_code_RadioGroup);
+//        sequenceRadioGroup
+
 
         // clears the existing map if not empty and adds new items
         // Also adds new items to database if does not exist
@@ -130,7 +136,7 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
 //                    //getting the number of taps of previous sequence
                     if (position > 1) {
 
-                        int previousCount = databaseManager.getRowCount(TapSequenceTableEnum.KEY_SEQUENCE_ID, position-1);
+                        int previousCount = databaseManager.getRowCount(TapSequenceTableEnum.KEY_SEQUENCE_ID, position - 1);
 
                         int currentCount = currentTap;
 
@@ -221,4 +227,9 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
         }
         return false;
     }
+
+    private void setCheckedPosition(int position){
+
+    }
+
 }
