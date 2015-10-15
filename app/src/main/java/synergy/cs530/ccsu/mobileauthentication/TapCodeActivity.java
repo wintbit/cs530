@@ -117,14 +117,20 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case (R.id.activity_tap_code_confirm_button):
                 if (position < AppConstants.MAX_SEQUENCE_LIMIT) {
+
+
                     position++;
+                    //currentTap=0;
+                   /* if(position == 1) {
+                        currentTap=0;
+                    }*/
                     currentSequence = map.get(position);
 
 
 //                    //getting the number of taps of previous sequence
                     if (position > 1) {
 
-                        int previousCount = databaseManager.getRowCount(TapSequenceTableEnum.KEY_SEQUENCE_ID, position - 1);
+                        int previousCount = databaseManager.getRowCount(TapSequenceTableEnum.KEY_SEQUENCE_ID, position-1);
 
                         int currentCount = currentTap;
 
@@ -145,6 +151,7 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                                         new Criterion(TapSequenceTableEnum.KEY_SEQUENCE_ID, i));
 
                             }
+
                             infoTextView.setText(Integer.toString(currentTap));
                         }else{
                             currentTap=0;
@@ -153,6 +160,7 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                     infoTextView.setText(Integer.toString(currentTap));
                     //TODO: Need to compare and evaluate that
                     // each sequence is similar, special case of 0
+                    currentTap=0;
                 } else if (position == AppConstants.MAX_SEQUENCE_LIMIT) {
                     //confirm finished all taps
                     Toast.makeText(getApplicationContext(),
@@ -195,24 +203,21 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                     tapRowId = databaseManager.addDataModel(dataModel);
                     Log.d(TAG, "Seq. Add TouchDown #: " + tapRowId);
 
-                    currentTap++;
-                    infoTextView.setText(Integer.toString(currentTap));
-                } else {
+
+                    infoTextView.setText(Integer.toString(currentTap));} else {
                     Toast.makeText(getApplicationContext(), "limit reached", Toast.LENGTH_SHORT).show();
                 }
-                break;
+                return true;
 
             case MotionEvent.ACTION_UP:
-
-
                 currentSequence.get(currentTap).setTimeUp(time);
                 int result = databaseManager.updateDataModel(TapSequenceTableEnum.KEY_ROW_ID
                         , new Criterion(TapSequenceTableEnum.Key_TOUCHUP, time), new Criterion(TapSequenceTableEnum.KEY_ROW_ID, tapRowId));
                 tapRowId = -1;
 
                 Log.d(TAG, "Seq. Add TouchUp #: " + result);
+                currentTap++;
                 break;
-
         }
         return false;
     }
