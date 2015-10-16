@@ -7,7 +7,8 @@ public class TapModel {
 
     private int X;
     private int Y;
-    private long time;
+    private long timeDown;
+    private long timeUp;
 
     public TapModel() {
     }
@@ -15,7 +16,7 @@ public class TapModel {
     public TapModel(int x, int y, long time) {
         X = x;
         Y = y;
-        this.time = time;
+        this.timeDown = time;
     }
 
     public int getX() {
@@ -34,12 +35,20 @@ public class TapModel {
         Y = y;
     }
 
-    public long getTime() {
-        return time;
+    public long getTimeDown() {
+        return timeDown;
     }
 
-    public void setTime(long time) {
-        this.time = time;
+    public void setTimeDown(long timeDown) {
+        this.timeDown = timeDown;
+    }
+
+    public long getTimeUp() {
+        return timeUp;
+    }
+
+    public void setTimeUp(long timeUp) {
+        this.timeUp = timeUp;
     }
 }
 

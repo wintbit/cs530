@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +32,10 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
     private ArrayList<TapModel> currentSequence;
     private LinearLayout linearLayout;
     private TextView infoTextView;
+    private RadioGroup sequenceRadioGroup;
+    /**
+     * represents the current position within the entered sequence
+     */
     private int currentTap = 0;
 
     @Override
@@ -39,6 +44,10 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
         setContentView(R.layout.activity_tap_code);
         map = new HashMap<>();
         databaseManager = DatabaseManager.getInstance(getApplicationContext());
+
+        sequenceRadioGroup   = (RadioGroup) findViewById(R.id.activity_tap_code_RadioGroup);
+//        sequenceRadioGroup
+
 
         // clears the existing map if not empty and adds new items
         // Also adds new items to database if does not exist
@@ -114,11 +123,50 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case (R.id.activity_tap_code_confirm_button):
                 if (position < AppConstants.MAX_SEQUENCE_LIMIT) {
+
+
                     position++;
+                    //currentTap=0;
+                   /* if(position == 1) {
+                        currentTap=0;
+                    }*/
                     currentSequence = map.get(position);
-                    //
+
+
+//                    //getting the number of taps of previous sequence
+                    if (position > 1) {
+
+                        int previousCount = databaseManager.getRowCount(TapSequenceTableEnum.KEY_SEQUENCE_ID, position - 1);
+
+                        int currentCount = currentTap;
+
+                        if (previousCount != currentCount) {
+                            //tap patterns did not matcg
+
+                            // message to renter the sequence correctly
+
+                            Toast.makeText(getApplicationContext(),
+                                    "Tap Did not match-startover", Toast.LENGTH_SHORT).show();
+                            // delate the datamodel of the two sequence
+                            position = 0;
+
+                            for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
+                                map.get(i).clear();
+                                databaseManager.deleteDataModel(
+                                        TapSequenceTableEnum.KEY_ROW_ID,
+                                        new Criterion(TapSequenceTableEnum.KEY_SEQUENCE_ID, i));
+
+                            }
+
+                            infoTextView.setText(Integer.toString(currentTap));
+                        }else{
+                            currentTap=0;
+                        }
+                    }
+                    infoTextView.setText(Integer.toString(currentTap));
                     //TODO: Need to compare and evaluate that
                     // each sequence is similar, special case of 0
+                    currentTap=0;
                 } else if (position == AppConstants.MAX_SEQUENCE_LIMIT) {
                     //confirm finished all taps
                     Toast.makeText(getApplicationContext(),
@@ -129,7 +177,10 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                 infoTextView.setText(Integer.toString(currentTap));
                 break;
         }
+
     }
+
+    int tapRowId = -1;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -138,12 +189,13 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
         int x = (int) event.getX();
         int y = (int) event.getY();
         event.getSize();
+        long time = System.currentTimeMillis();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (currentTap < AppConstants.MAX_TAP_LIMIT
                         && position < AppConstants.MAX_SEQUENCE_LIMIT) {
 
-                    long time = System.currentTimeMillis();
+
                     TapModel tapmodel = new TapModel(x,
                             y, time);
                     currentSequence.add(tapmodel);
@@ -152,17 +204,32 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                     dataModel.put(TapSequenceTableEnum.KEY_SEQUENCE_ID, position);
                     dataModel.put(TapSequenceTableEnum.KEY_X_AXIS, x);
                     dataModel.put(TapSequenceTableEnum.KEY_Y_AXIS, y);
-                    dataModel.put(TapSequenceTableEnum.KEY_TIME, time);
-                    int result = databaseManager.addDataModel(dataModel);
-                    Log.d(TAG, "Seq. Add #: " + result);
+                    dataModel.put(TapSequenceTableEnum.KEY_TOUCHDOWN, time);
 
-                    currentTap++;
-                    infoTextView.setText(Integer.toString(currentTap));
-                } else {
+                    tapRowId = databaseManager.addDataModel(dataModel);
+                    Log.d(TAG, "Seq. Add TouchDown #: " + tapRowId);
+
+
+                    infoTextView.setText(Integer.toString(currentTap));} else {
                     Toast.makeText(getApplicationContext(), "limit reached", Toast.LENGTH_SHORT).show();
                 }
+                return true;
+
+            case MotionEvent.ACTION_UP:
+                currentSequence.get(currentTap).setTimeUp(time);
+                int result = databaseManager.updateDataModel(TapSequenceTableEnum.KEY_ROW_ID
+                        , new Criterion(TapSequenceTableEnum.Key_TOUCHUP, time), new Criterion(TapSequenceTableEnum.KEY_ROW_ID, tapRowId));
+                tapRowId = -1;
+
+                Log.d(TAG, "Seq. Add TouchUp #: " + result);
+                currentTap++;
                 break;
         }
         return false;
     }
+
+    private void setCheckedPosition(int position){
+
+    }
+
 }
