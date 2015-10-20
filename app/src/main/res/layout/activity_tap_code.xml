@@ -15,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="center">
 
         <TextView
             android:id="@+id/activity_tap_code_info_textView"
@@ -26,12 +27,13 @@
             android:gravity="center_vertical|center_horizontal"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-        <RadioGroup
+        <LinearLayout
             android:id="@+id/activity_tap_code_RadioGroup"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:gravity="center_vertical|center_horizontal">
+            android:gravity="center_vertical|center_horizontal"
+            android:clickable="false">
 
             <RadioButton
                 android:id="@+id/activity_tap_code_seq_1_RadioButton"
@@ -47,7 +49,7 @@
                 android:id="@+id/activity_tap_code_seq_3_RadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-        </RadioGroup>
+        </LinearLayout>
 
 
     </LinearLayout>

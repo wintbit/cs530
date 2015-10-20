@@ -2,9 +2,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="synergy.cs530.ccsu.mobileauthentication.DeveloperDatabaseActivity">
+
     <item
-        android:id="@+id/action_clear"
+        android:id="@+id/action_export"
         android:orderInCategory="100"
-        android:title="@string/action_clear"
+        android:title="@string/action_export"
+        app:showAsAction="ifRoom|collapseActionView" />
+    <item
+        android:id="@+id/action_reset"
+        android:orderInCategory="100"
+        android:title="@string/action_reset"
         app:showAsAction="ifRoom|collapseActionView" />
 </menu>

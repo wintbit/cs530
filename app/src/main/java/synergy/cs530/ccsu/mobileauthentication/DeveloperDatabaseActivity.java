@@ -1,8 +1,8 @@
 package synergy.cs530.ccsu.mobileauthentication;
 
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -12,20 +12,23 @@ import android.widget.AdapterView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import synergy.cs530.ccsu.mobileauthentication.dao.DatabaseManager;
 import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 import synergy.cs530.ccsu.mobileauthentication.dao.models.Criterion;
 import synergy.cs530.ccsu.mobileauthentication.dao.models.DataModel;
+import synergy.cs530.ccsu.mobileauthentication.utils.FileTransfer;
 
 public class DeveloperDatabaseActivity extends AppCompatActivity implements
         AdapterView.OnItemSelectedListener {
 
     private final String TAG = this.getClass().getName();
 
-     private DatabaseManager mDatabaseManager;
+    private DatabaseManager mDatabaseManager;
 
     private TableLayout mTableLayout;
     private TableRow headerTableRow;
@@ -40,11 +43,11 @@ public class DeveloperDatabaseActivity extends AppCompatActivity implements
                     R.id.fragment_developer_database_tableLayout);
             headerTableRow = (TableRow) findViewById(
                     R.id.fragment_developer_database_tableLayout_header_tableRow);
-            LoadDatabaseTableTask tableTask=  new LoadDatabaseTableTask();
+            LoadDatabaseTableTask tableTask = new LoadDatabaseTableTask();
             try {
                 tableTask.execute(TapSequenceTableEnum.KEY_ROW_ID.getTableName());
-            }catch (IllegalStateException ex) {
-                Log.e(TAG,ex.getMessage());
+            } catch (IllegalStateException ex) {
+                Log.e(TAG, ex.getMessage());
             }
         }
     }
@@ -64,10 +67,27 @@ public class DeveloperDatabaseActivity extends AppCompatActivity implements
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_clear) {
-            mDatabaseManager.deleteDataModel(
-                    TapSequenceTableEnum.KEY_ROW_ID, (Criterion) null);
-            return true;
+        switch (id) {
+            case R.id.action_export:
+                ExportDatabaseTask workerTask = new ExportDatabaseTask();
+                try {
+                    workerTask.execute();
+                } catch (IllegalStateException ex) {
+                    Log.e(TAG, ex.getLocalizedMessage());
+                }
+                return true;
+            case R.id.action_reset:
+                int result = mDatabaseManager.deleteDataModel(
+                        TapSequenceTableEnum.KEY_ROW_ID, (Criterion) null);
+                if (result > 0) {
+                    LoadDatabaseTableTask tableTask = new LoadDatabaseTableTask();
+                    try {
+                        tableTask.execute(TapSequenceTableEnum.KEY_ROW_ID.getTableName());
+                    } catch (IllegalStateException ex) {
+                        Log.e(TAG, ex.getMessage());
+                    }
+                }
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -83,7 +103,30 @@ public class DeveloperDatabaseActivity extends AppCompatActivity implements
 
     }
 
+    private class ExportDatabaseTask extends AsyncTask<Void, Void, Boolean> {
 
+
+        public ExportDatabaseTask() {
+        }
+
+        // Decode image in background.
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            FileTransfer fileTransfer = new FileTransfer();
+            File dbFile = getDatabasePath(DatabaseManager.DATABASE_NAME);
+            File distFile = AppConstants.getExternalStorageDirectory(getApplicationContext());
+            return fileTransfer.transferFile(dbFile, distFile);
+        }
+
+
+        // Once complete, see if ImageView is still around and set bitmap.
+        @Override
+        protected void onPostExecute(Boolean status) {
+            Toast.makeText(getApplicationContext(), "Exported: " +
+                    status, Toast.LENGTH_LONG).show();
+
+        }
+    }
 
 
     private class LoadDatabaseTableTask extends AsyncTask<String, Void, ArrayList<DataModel>> {
@@ -97,7 +140,10 @@ public class DeveloperDatabaseActivity extends AppCompatActivity implements
 
         @Override
         protected void onPostExecute(ArrayList<DataModel> dataModels) {
-            mTableLayout.removeAllViews();
+            int count = mTableLayout.getChildCount();
+            if (count > 0) {
+                mTableLayout.removeAllViews();
+            }
             if (null != dataModels && !dataModels.isEmpty()) {
                 int rows = dataModels.size();
                 int cols = dataModels.get(0).size();
