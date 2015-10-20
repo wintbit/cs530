@@ -42,7 +42,7 @@ import synergy.cs530.ccsu.mobileauthentication.dao.models.OrderByEnum;
  */
 public class DatabaseManager {
 
-    private static final String DATABASE_NAME = "mobile_authentication.db";
+    public static final String DATABASE_NAME = "mobile_authentication.db";
     private static final int DATABASE_VERSION = 1;
     private static final String TAG = "DatabaseManager";
     private static final String CREATE_TABLE_KEY = " CREATE TABLE IF NOT EXISTS %s ";
@@ -882,6 +882,7 @@ public class DatabaseManager {
             try {
                 String whereClause = null;
                 if (null != whereConditions) {
+                    String s = whereConditions.getClause();
                     whereClause = whereConditions.getClause();
                 }
                 result = sqliteDatabase.delete(tableField.getTableName(),

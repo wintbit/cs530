@@ -2,11 +2,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="synergy.cs530.ccsu.mobileauthentication.TapCodeActivity">
+
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_export_sequence"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+        android:title="@string/action_export_sequence"
+        app:showAsAction="ifRoom|collapseActionView" />
 
     <item
         android:id="@+id/action_developer"
