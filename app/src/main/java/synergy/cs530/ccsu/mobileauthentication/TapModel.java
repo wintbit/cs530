@@ -50,5 +50,10 @@ public class TapModel {
     public void setTimeUp(long timeUp) {
         this.timeUp = timeUp;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s, %s, %s, %s", X, Y, timeDown, timeUp);
+    }
 }
 
