@@ -2,6 +2,7 @@ package synergy.cs530.ccsu.mobileauthentication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -10,8 +11,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +34,19 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
     private ArrayList<TapModel> currentSequence;
     private LinearLayout linearLayout;
     private TextView infoTextView;
+    private Button mStartStopButton;
+    private TextView mTimerinfoView;
+    //private TextView txtCount;
+  /*  private Button btnCount;
+    int count = 0;
+
+    boolean[] timerProcessing = {false};
+
+    boolean[] timerStarts = {false};
+
+    //private MyCount timer;
+    */
+    private RadioGroup sequenceRadioGroup;
     /**
      * represents the current position within the entered sequence
      */
@@ -43,17 +59,23 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
         map = new HashMap<>();
         databaseManager = DatabaseManager.getInstance(getApplicationContext());
 
-
+        sequenceRadioGroup = (RadioGroup) findViewById(R.id.activity_tap_code_RadioGroup);
+//        sequenceRadioGroup
+        mStartStopButton = (Button) findViewById(R.id.activity_tap_code_stopwatch_togglcontent);
+        mStartStopButton.setOnClickListener(this);
         // clears the existing map if not empty and adds new items
         // Also adds new items to database if does not exist
-        //SEtting up the map
         for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
             map.put(i, new ArrayList<TapModel>());
         }
 
         Button mRetry = (Button) findViewById(R.id.activity_tap_code_retry_button);
         Button mConfirm = (Button) findViewById(R.id.activity_tap_code_confirm_button);
+        mTimerinfoView = (TextView) findViewById(R.id.activity_tap_code_info_timer);
+
         mConfirm.setOnClickListener(this);
+
+
         mRetry.setOnClickListener(this);
 
         //Set the initial sequence container using the position
@@ -64,6 +86,8 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
         linearLayout.setOnTouchListener(this);
 
         infoTextView = (TextView) findViewById(R.id.activity_tap_code_info_textView);
+        //for timer
+        //timer = new MyCount(5000, 1);
 
     }
 
@@ -104,6 +128,7 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+
             case (R.id.activity_tap_code_retry_button):
                 if (position < AppConstants.MAX_SEQUENCE_LIMIT) {
                     currentSequence.clear();
@@ -137,19 +162,20 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                         int currentCount = currentTap;
 
                         if (previousCount != currentCount) {
-                            //tap patterns did not match
-
-                            // message to renter the sequence correctly
+                            //tap patterns did not matcg// message to renter the sequence correctly
 
                             Toast.makeText(getApplicationContext(),
                                     "Tap Did not match-startover", Toast.LENGTH_SHORT).show();
-                            // delete the datamodel of the two sequence
+                            // delate the datamodel of the two sequence
                             position = 0;
 
-                            resetMap();
-                            databaseManager.deleteDataModel(
-                                    TapSequenceTableEnum.KEY_ROW_ID, (Criterion) null);
+                            for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
+                                map.get(i).clear();
+                                databaseManager.deleteDataModel(
+                                        TapSequenceTableEnum.KEY_ROW_ID,
+                                        new Criterion(TapSequenceTableEnum.KEY_SEQUENCE_ID, i));
 
+                            }
 
                             infoTextView.setText(Integer.toString(currentTap));
                         } else {
@@ -165,16 +191,31 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                     Toast.makeText(getApplicationContext(),
                             "Done", Toast.LENGTH_SHORT).show();
                     //TODO: Need to compare and evaluate that each sequence is similar
-                    //Reset counter
                     currentTap = 0;
-                    AppConstants.generateCSVFile(getApplicationContext(), map);
-                    //Reset the map
-                    resetMap();
-
                 }
                 infoTextView.setText(Integer.toString(currentTap));
                 break;
-        }
+
+            case (R.id.activity_tap_code_stopwatch_togglcontent):
+//start the countdown timer for 10 seconds
+                //After 10 seconds there should be amessage telling the user to stop tapping
+                // and save the record in the array
+                //if the user presses the stop button before the time is up jus add the entered patter
+              /*  mStartStopButton.setText("stop");
+                if (!timerStarts[0]) {
+                    timer.start();
+                    timerStarts[0] = true;
+                    timerProcessing[0] = true;
+                }
+
+                if (timerProcessing[0]) {
+                    count++;
+                    mTimerinfoView.setText(String.valueOf(count));
+                }
+
+
+                break;
+      */  }
 
     }
 
@@ -182,8 +223,6 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-
-
         int x = (int) event.getX();
         int y = (int) event.getY();
         event.getSize();
@@ -205,37 +244,61 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                     dataModel.put(TapSequenceTableEnum.KEY_TOUCHDOWN, time);
 
                     tapRowId = databaseManager.addDataModel(dataModel);
+
                     Log.d(TAG, "Seq. Add TouchDown #: " + tapRowId);
+
 
                     infoTextView.setText(Integer.toString(currentTap));
                 } else {
-                    Toast.makeText(getApplicationContext(), "limit reached",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "limit reached", Toast.LENGTH_SHORT).show();
                 }
                 return true;
 
             case MotionEvent.ACTION_UP:
                 currentSequence.get(currentTap).setTimeUp(time);
-                int result = databaseManager.updateDataModel(TapSequenceTableEnum.KEY_ROW_ID
-                        , new Criterion(TapSequenceTableEnum.Key_TOUCHUP, time), new Criterion(
-                        TapSequenceTableEnum.KEY_ROW_ID, tapRowId));
+               int result = databaseManager.updateDataModel(TapSequenceTableEnum.KEY_ROW_ID
+                        , new Criterion(TapSequenceTableEnum.Key_TOUCHUP, time), new Criterion(TapSequenceTableEnum.KEY_ROW_ID, tapRowId));
+
                 tapRowId = -1;
 
                 Log.d(TAG, "Seq. Add TouchUp #: " + result);
+
                 currentTap++;
+
                 break;
         }
         return false;
     }
 
-    private void resetMap() {
-        for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
-            map.get(i).clear();
-        }
-    }
+ /*  public class MyCount extends CountDownTimer {
 
+        public MyCount(long millisInFuture, long countDownInterval) {
+
+            super(millisInFuture, countDownInterval);
+
+        }
+
+        @Override
+        public void onFinish() {
+            mTimerinfoView.setText("Time is up");
+            timerStarts[0] = false;
+            mStartStopButton.setText("Start");
+
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            mTimerinfoView.setText("" + millisUntilFinished / 1000 + ":"
+                    + millisUntilFinished % 1000);
+
+        }
+
+    }
+    */
     private void setCheckedPosition(int position) {
 
     }
-
 }
+
+
+

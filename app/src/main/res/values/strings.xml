@@ -5,11 +5,12 @@
     <string name="action_developer">Developer</string>
     <string name="action_reset">Reset</string>
     <string name="action_clear">Clear</string>
-    <string name="action_export">Export</string>
     <string name="title_activity_tap_code">Tap-Code</string>
     <string name="title_activity_developer_database">Developer-DB</string>
     <string name="tables">Tables :</string>
     <string name="add">Add</string>
     <string name="reset">Reset</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
     <string name="action_export_sequence">Exp. Seq.</string>
 </resources>
