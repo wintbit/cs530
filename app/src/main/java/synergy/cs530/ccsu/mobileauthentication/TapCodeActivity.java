@@ -165,6 +165,7 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
                             //tap patterns did not matcg// message to renter the sequence correctly
 
                             Toast.makeText(getApplicationContext(),
+
                                     "Tap Did not match-startover", Toast.LENGTH_SHORT).show();
                             // delate the datamodel of the two sequence
                             position = 0;

@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Large Text"
+            android:text="@string/app_name"
             android:id="@+id/activity_tap_code_info_timer"
             android:layout_gravity="center_horizontal" />
 
