@@ -25,7 +25,8 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:gravity="center_vertical|center_horizontal"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:id="@+id/activity_tap_code_RadioGroup"
@@ -61,7 +62,8 @@
         android:layout_above="@+id/relativeLayout"
         android:layout_below="@+id/linearLayout"
         android:layout_gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@drawable/border">
 
     </LinearLayout>
 

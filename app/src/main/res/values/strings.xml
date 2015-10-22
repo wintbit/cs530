@@ -12,4 +12,18 @@
     <string name="add">Add</string>
     <string name="reset">Reset</string>
     <string name="action_export_sequence">Exp. Seq.</string>
+
+    <string name="notification_limit_reached">Limit reached.</string>
+    <string name="notification_no_entry">No entry.</string>
+    <string name="notification_success">Success</string>
+    <string name="notification_fail">Fail</string>
+    <string name="notification_resetting_sequences"> Resetting sequences</string>
+    <string name="notification_try_again">Try Again</string>
+    <string name="notification_export_success">Export Success</string>
+    <string name="notification_export_fail">Export Failed</string>
+    <string name="notification_mis_match">Do not Match</string>
+
+    <string name="notification_"> </string>
+
+
 </resources>
