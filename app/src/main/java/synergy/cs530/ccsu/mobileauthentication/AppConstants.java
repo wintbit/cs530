@@ -2,6 +2,7 @@ package synergy.cs530.ccsu.mobileauthentication;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,10 +15,11 @@ import java.util.Map;
 
 /**
  * Created by ejwint on 9/28/15.
+ * Provides a application level utilities
  */
 public class AppConstants {
 
-    private final String TAG = this.getClass().getName();
+    private static String TAG = "AppConstants";
 
 
     public static final int MAX_SEQUENCE_LIMIT = 3;
@@ -46,35 +48,43 @@ public class AppConstants {
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
         boolean result = false;
-        File mediaStorageDir = getExternalStorageDirectory(context);
 
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile;
-        mediaFile = new File(mediaStorageDir.getPath()
-                + File.separator + timeStamp + ".csv");
-        try {
-            FileWriter writer = new FileWriter(mediaFile);
+        if (BuildConfig.DEBUG) {
+            //Feature is only available for developers ONLY.
+            try {
+                File mediaStorageDir = getExternalStorageDirectory(context);
+                // Create a media file name
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                File mediaFile;
+                mediaFile = new File(mediaStorageDir.getPath()
+                        + File.separator + timeStamp + ".csv");
+                try {
+                    FileWriter writer = new FileWriter(mediaFile);
 
-            for (Map.Entry<Integer, ArrayList<TapModel>> entry : sequences.entrySet()) {
-                Integer key = entry.getKey();
-                ArrayList<TapModel> value = entry.getValue();
-                for (TapModel tapModel : value) {
-                    writer.append(key.toString());
-                    writer.append(",");
-                    writer.append(tapModel.toString());
-                    writer.append("\r\n");
+                    for (Map.Entry<Integer, ArrayList<TapModel>> entry : sequences.entrySet()) {
+                        Integer key = entry.getKey();
+                        ArrayList<TapModel> value = entry.getValue();
+                        for (TapModel tapModel : value) {
+                            writer.append(key.toString());
+                            writer.append(",");
+                            writer.append(tapModel.toString());
+                            writer.append("\r\n");
+                        }
+                    }
+                    //generate whatever data you want
+                    writer.flush();
+                    writer.close();
+                    result = true;
+                } catch (IOException e) {
+                    Log.d(TAG, e.getMessage());
                 }
+
+            } catch (NullPointerException ex) {
+                Log.e(TAG, ex.getMessage());
+            } catch (SecurityException ex) {
+                Log.e(TAG, ex.getMessage());
             }
-            //generate whatever data you want
-            writer.flush();
-            writer.close();
-            result = true;
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-
-
         //
         return result;
     }

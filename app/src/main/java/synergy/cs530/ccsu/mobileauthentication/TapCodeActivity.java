@@ -2,92 +2,73 @@ package synergy.cs530.ccsu.mobileauthentication;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RadioGroup;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import synergy.cs530.ccsu.mobileauthentication.dao.DatabaseManager;
-import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
-import synergy.cs530.ccsu.mobileauthentication.dao.models.Criterion;
-import synergy.cs530.ccsu.mobileauthentication.dao.models.DataModel;
+import synergy.cs530.ccsu.mobileauthentication.enums.NotificationEnum;
 
-public class TapCodeActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
+public class TapCodeActivity extends AppCompatActivity implements
+        View.OnClickListener, View.OnTouchListener {
 
     private final String TAG = this.getClass().getName();
 
-    private DatabaseManager databaseManager;
-    private HashMap<Integer, ArrayList<TapModel>> map;
-    private int position = 0;
+    private HashMap<Integer, ArrayList<TapModel>> mSequenceMap
+            = new HashMap<>();
+    private int SEQ_INDEX = 0;
     private ArrayList<TapModel> currentSequence;
-    private LinearLayout linearLayout;
-    private TextView infoTextView;
-    private Button mStartStopButton;
-    private TextView mTimerinfoView;
-    //private TextView txtCount;
-  /*  private Button btnCount;
-    int count = 0;
-
-    boolean[] timerProcessing = {false};
-
-    boolean[] timerStarts = {false};
-
-    //private MyCount timer;
-    */
-    private RadioGroup sequenceRadioGroup;
+    private LinearLayout mLinearLayout;
+    private TextView mInfoTextView;
     /**
-     * represents the current position within the entered sequence
+     * represents the current SEQ_INDEX within the entered sequence
      */
-    private int currentTap = 0;
+    private int currentTapCount = 0;
+
+    private RadioButton mFirstRadioButton;
+    private RadioButton mSecondRadioButton;
+    private RadioButton mThirdRadioButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tap_code);
-        map = new HashMap<>();
-        databaseManager = DatabaseManager.getInstance(getApplicationContext());
 
-        sequenceRadioGroup = (RadioGroup) findViewById(R.id.activity_tap_code_RadioGroup);
-//        sequenceRadioGroup
-        mStartStopButton = (Button) findViewById(R.id.activity_tap_code_stopwatch_togglcontent);
-        mStartStopButton.setOnClickListener(this);
-        // clears the existing map if not empty and adds new items
-        // Also adds new items to database if does not exist
-        for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
-            map.put(i, new ArrayList<TapModel>());
-        }
+        //Get view objects
+        Button retryButton = (Button) findViewById(R.id.activity_tap_code_retry_button);
+        retryButton.setOnClickListener(this);
 
-        Button mRetry = (Button) findViewById(R.id.activity_tap_code_retry_button);
-        Button mConfirm = (Button) findViewById(R.id.activity_tap_code_confirm_button);
-        mTimerinfoView = (TextView) findViewById(R.id.activity_tap_code_info_timer);
+        Button confirmButton = (Button) findViewById(R.id.activity_tap_code_confirm_button);
+        confirmButton.setOnClickListener(this);
 
-        mConfirm.setOnClickListener(this);
-
-
-        mRetry.setOnClickListener(this);
-
-        //Set the initial sequence container using the position
-        currentSequence = map.get(position);
         //Get the view object that registers the touch events
-        linearLayout = (LinearLayout) findViewById(R.id.activity_tap_code_linearLayout);
+        mLinearLayout = (LinearLayout) findViewById(R.id.activity_tap_code_linearLayout);
         //Set the touch event listener
-        linearLayout.setOnTouchListener(this);
+        mLinearLayout.setOnTouchListener(this);
+        //Get the TextView in which we will display the current tap count.
+        mInfoTextView = (TextView) findViewById(R.id.activity_tap_code_info_textView);
 
-        infoTextView = (TextView) findViewById(R.id.activity_tap_code_info_textView);
-        //for timer
-        //timer = new MyCount(5000, 1);
+        //GET the sequence radio buttons
+        mFirstRadioButton = (RadioButton) findViewById(R.id.activity_tap_code_seq_1_RadioButton);
+        mSecondRadioButton = (RadioButton) findViewById(R.id.activity_tap_code_seq_2_RadioButton);
+        mThirdRadioButton = (RadioButton) findViewById(R.id.activity_tap_code_seq_3_RadioButton);
+
+        //Create the sequence map.
+        for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
+            mSequenceMap.put(i, new ArrayList<TapModel>());
+        }
+        //Set the initial sequence container using the SEQ_INDEX
+        currentSequence = mSequenceMap.get(SEQ_INDEX);
 
     }
 
@@ -127,179 +108,197 @@ public class TapCodeActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
+        //Check first if your use has touch/entered a touch event first
+
         switch (v.getId()) {
-
             case (R.id.activity_tap_code_retry_button):
-                if (position < AppConstants.MAX_SEQUENCE_LIMIT) {
-                    currentSequence.clear();
-                    currentTap = 0;
-                    int result = databaseManager.deleteDataModel(
-                            TapSequenceTableEnum.KEY_SEQUENCE_ID,
-                            new Criterion(TapSequenceTableEnum.KEY_SEQUENCE_ID,
-                                    position));
-                    Log.d(TAG, "Seq. Del. #: " + result);
+                //Check if not empty first.
+                if (!currentSequence.isEmpty()) {
+                    resetSequencePatterns();
+                    displayNotification(NotificationEnum.RESETTING_SEQUENCES);
+                } else {
+                    displayNotification(NotificationEnum.NO_ENTRY);
                 }
-
-                infoTextView.setText(Integer.toString(currentTap));
                 break;
             case (R.id.activity_tap_code_confirm_button):
-                if (position < AppConstants.MAX_SEQUENCE_LIMIT) {
 
+                if (currentTapCount > 0) {
+                    if (SEQ_INDEX == 0) {
+                        updateSequenceRadioButtonView(SEQ_INDEX, currentTapCount);
+                        SEQ_INDEX++;
+                        currentSequence = mSequenceMap.get(SEQ_INDEX);
+                        currentTapCount = 0;
 
-                    position++;
-                    //currentTap=0;
-                   /* if(position == 1) {
-                        currentTap=0;
-                    }*/
-                    currentSequence = map.get(position);
-
-
-//                    //getting the number of taps of previous sequence
-                    if (position > 1) {
-
-                        int previousCount = databaseManager.getRowCount(TapSequenceTableEnum.KEY_SEQUENCE_ID, position - 1);
-
-                        int currentCount = currentTap;
-
-                        if (previousCount != currentCount) {
-                            //tap patterns did not matcg// message to renter the sequence correctly
-
-                            Toast.makeText(getApplicationContext(),
-
-                                    "Tap Did not match-startover", Toast.LENGTH_SHORT).show();
-                            // delate the datamodel of the two sequence
-                            position = 0;
-
-                            for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
-                                map.get(i).clear();
-                                databaseManager.deleteDataModel(
-                                        TapSequenceTableEnum.KEY_ROW_ID,
-                                        new Criterion(TapSequenceTableEnum.KEY_SEQUENCE_ID, i));
-
-                            }
-
-                            infoTextView.setText(Integer.toString(currentTap));
+                    } else if (SEQ_INDEX == 1) {
+                        int previousTapCount = mSequenceMap.get(SEQ_INDEX - 1).size();
+                        //If previous and current tap's match
+                        if (previousTapCount == currentTapCount) {
+                            updateSequenceRadioButtonView(SEQ_INDEX, currentTapCount);
+                            SEQ_INDEX++;
+                            currentSequence = mSequenceMap.get(SEQ_INDEX);
+                            currentTapCount = 0;
                         } else {
-                            currentTap = 0;
+                            //If previous and current tap's DON'T match
+                            //RESET current sequence can try again.
+                            resetCurrentSequence();
+                        }
+                    } else if (SEQ_INDEX == 2) {
+
+                        int previousTapCount = mSequenceMap.get(SEQ_INDEX - 1).size();
+                        //If previous and current tap's match
+                        if (previousTapCount == currentTapCount) {
+                            updateSequenceRadioButtonView(SEQ_INDEX, currentTapCount);
+                            Toast.makeText(getApplicationContext(),
+                                    "Tap-Sequence Recorded", Toast.LENGTH_SHORT).show();
+
+                            if (BuildConfig.DEBUG) {
+                                //Feature is only available for developers ONLY.
+                                boolean exported = AppConstants.generateCSVFile(this, mSequenceMap);
+                                if (exported) {
+                                    displayNotification(NotificationEnum.EXPORT_SEQUENCE_SUCCESS);
+                                    resetSequencePatterns();
+                                    displayNotification(NotificationEnum.RESETTING_SEQUENCES);
+                                } else {
+                                    displayNotification(NotificationEnum.EXPORT_SEQUENCE_FAIL);
+                                }
+                            }
+                        } else {
+                            //If previous and current tap's DON'T match
+                            //RESET current sequence can try again.
+                            resetCurrentSequence();
                         }
                     }
-                    infoTextView.setText(Integer.toString(currentTap));
-                    //TODO: Need to compare and evaluate that
-                    // each sequence is similar, special case of 0
-                    currentTap = 0;
-                } else if (position == AppConstants.MAX_SEQUENCE_LIMIT) {
-                    //confirm finished all taps
-                    Toast.makeText(getApplicationContext(),
-                            "Done", Toast.LENGTH_SHORT).show();
-                    //TODO: Need to compare and evaluate that each sequence is similar
-                    currentTap = 0;
+                } else {
+                    displayNotification(NotificationEnum.NO_ENTRY);
                 }
-                infoTextView.setText(Integer.toString(currentTap));
+                mInfoTextView.setText(Integer.toString(currentTapCount));
                 break;
+        }
+    }
 
-            case (R.id.activity_tap_code_stopwatch_togglcontent):
-//start the countdown timer for 10 seconds
-                //After 10 seconds there should be amessage telling the user to stop tapping
-                // and save the record in the array
-                //if the user presses the stop button before the time is up jus add the entered patter
-              /*  mStartStopButton.setText("stop");
-                if (!timerStarts[0]) {
-                    timer.start();
-                    timerStarts[0] = true;
-                    timerProcessing[0] = true;
-                }
-
-                if (timerProcessing[0]) {
-                    count++;
-                    mTimerinfoView.setText(String.valueOf(count));
-                }
-
-
-                break;
-      */  }
+    private void resetCurrentSequence() {
+        //If previous and current tap's DON'T match
+        //RESET current sequence can try again.
+        currentSequence.clear();
+        currentTapCount = 0;
+        displayNotification(NotificationEnum.MIS_MATCH);
+        displayNotification(NotificationEnum.TRY_AGAIN);
 
     }
 
-    int tapRowId = -1;
+
+    private long touchUpTime;
+    private long touchDowTime;
+    private int xAxis;
+    private int yAxis;
+    private TapModel tapModel = new TapModel();
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        int x = (int) event.getX();
-        int y = (int) event.getY();
-        event.getSize();
-        long time = System.currentTimeMillis();
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                if (currentTap < AppConstants.MAX_TAP_LIMIT
-                        && position < AppConstants.MAX_SEQUENCE_LIMIT) {
+        //check to see if the user in is the correct range first.
+        if (currentTapCount < AppConstants.MAX_TAP_LIMIT
+                && SEQ_INDEX <= AppConstants.MAX_SEQUENCE_LIMIT) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    //Get the initial tap info from the touch down
+                    touchDowTime = System.currentTimeMillis();
+                    xAxis = (int) event.getX();
+                    yAxis = (int) event.getY();
 
+                    return true;
+                case MotionEvent.ACTION_UP:
 
-                    TapModel tapmodel = new TapModel(x,
-                            y, time);
-                    currentSequence.add(tapmodel);
+                    touchUpTime = System.currentTimeMillis();
+                    tapModel.setTimeDown(touchDowTime);
+                    tapModel.setTimeUp(touchUpTime);
+                    tapModel.setX(xAxis);
+                    tapModel.setTimeUp(yAxis);
+                    currentSequence.add(tapModel);
 
-                    DataModel dataModel = new DataModel(TapSequenceTableEnum.KEY_ROW_ID);
-                    dataModel.put(TapSequenceTableEnum.KEY_SEQUENCE_ID, position);
-                    dataModel.put(TapSequenceTableEnum.KEY_X_AXIS, x);
-                    dataModel.put(TapSequenceTableEnum.KEY_Y_AXIS, y);
-                    dataModel.put(TapSequenceTableEnum.KEY_TOUCHDOWN, time);
+                    //Increment counter
+                    incrementTap();
+                    updateTapInfoView();
 
-                    tapRowId = databaseManager.addDataModel(dataModel);
-
-                    Log.d(TAG, "Seq. Add TouchDown #: " + tapRowId);
-
-
-                    infoTextView.setText(Integer.toString(currentTap));
-                } else {
-                    Toast.makeText(getApplicationContext(), "limit reached", Toast.LENGTH_SHORT).show();
-                }
-                return true;
-
-            case MotionEvent.ACTION_UP:
-                currentSequence.get(currentTap).setTimeUp(time);
-               int result = databaseManager.updateDataModel(TapSequenceTableEnum.KEY_ROW_ID
-                        , new Criterion(TapSequenceTableEnum.Key_TOUCHUP, time), new Criterion(TapSequenceTableEnum.KEY_ROW_ID, tapRowId));
-
-                tapRowId = -1;
-
-                Log.d(TAG, "Seq. Add TouchUp #: " + result);
-
-                currentTap++;
-
-                break;
+                    return true;
+            }
+        } else {
+           displayNotification(NotificationEnum.LIMIT_REACHED);
         }
         return false;
     }
 
- /*  public class MyCount extends CountDownTimer {
-
-        public MyCount(long millisInFuture, long countDownInterval) {
-
-            super(millisInFuture, countDownInterval);
-
-        }
-
-        @Override
-        public void onFinish() {
-            mTimerinfoView.setText("Time is up");
-            timerStarts[0] = false;
-            mStartStopButton.setText("Start");
-
-        }
-
-        @Override
-        public void onTick(long millisUntilFinished) {
-            mTimerinfoView.setText("" + millisUntilFinished / 1000 + ":"
-                    + millisUntilFinished % 1000);
-
-        }
-
+    private void resetTap() {
+        currentTapCount = 0;
     }
-    */
-    private void setCheckedPosition(int position) {
 
+    private void incrementTap() {
+        currentTapCount++;
     }
+
+    private void updateTapInfoView() {
+        mInfoTextView.setText(Integer.toString(currentTapCount));
+    }
+
+    private void displayNotification(NotificationEnum notificationEnums) {
+        Toast.makeText(getApplicationContext(),
+                notificationEnums.getValue(),
+                Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Resets the entire tap sequence setup and all related components
+     */
+    private void resetSequencePatterns() {
+        resetSequenceMap();
+        SEQ_INDEX = 0;
+        currentTapCount = 0;
+        currentSequence = mSequenceMap.get(SEQ_INDEX);
+        mInfoTextView.setText(null);
+        updateSequenceRadioButtonView(-1, -1);
+    }
+
+    /**
+     * Clears a tap patterns current stored in the all sequences
+     */
+    private void resetSequenceMap() {
+        for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
+            ArrayList<TapModel> list = mSequenceMap.get(i);
+            if (list != null && !list.isEmpty()) {
+                list.clear();
+            }
+        }
+    }
+
+    /**
+     * Sets the current number fo taps associated with sequence that has been configured
+     *
+     * @param position zero bac index, -1 = reset all to blank.
+     * @param value    a valid integer value.
+     */
+    private void updateSequenceRadioButtonView(int position, int value) {
+        boolean state = false;
+        switch (position) {
+            case -1:
+                mFirstRadioButton.setText(null);
+                mSecondRadioButton.setText(null);
+                mThirdRadioButton.setText(null);
+                mFirstRadioButton.setChecked(state);
+                mSecondRadioButton.setChecked(state);
+                mThirdRadioButton.setChecked(state);
+                break;
+            case 0:
+                mFirstRadioButton.setChecked(!state);
+                mFirstRadioButton.setText(Integer.toString(value));
+                break;
+            case 1:
+                mSecondRadioButton.setChecked(!state);
+                mSecondRadioButton.setText(Integer.toString(value));
+                break;
+            case 2:
+                mThirdRadioButton.setChecked(!state);
+                mThirdRadioButton.setText(Integer.toString(value));
+                break;
+        }
+    }
+
 }
-
-
-
