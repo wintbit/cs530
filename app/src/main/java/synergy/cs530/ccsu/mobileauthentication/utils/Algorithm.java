@@ -1,6 +1,7 @@
 package synergy.cs530.ccsu.mobileauthentication.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import synergy.cs530.ccsu.mobileauthentication.TapModel;
 
@@ -9,30 +10,65 @@ import synergy.cs530.ccsu.mobileauthentication.TapModel;
  */
 public class Algorithm {
 
+    private HashMap<Integer, ArrayList<TapModel>> templateModels;
 
-    private ArrayList<TapModel> models;
+    private long[] tVectors;
 
-    public Algorithm(ArrayList<TapModel> models) {
-        this.models = models;
+    public Algorithm(HashMap<Integer, ArrayList<TapModel>> models) {
+        this.templateModels = models;
+
+        int size = models.get(0).size();
+
+        tVectors = new long[models.get(0).size()];
+
+        for (ArrayList<TapModel> values : models.values()) {
+
+            int len = values.size();
+            for (int i = 0; i < len; i++) {
+                tVectors[i] += values.get(i).getTimeDown();
+            }
+        }
+        for (int i = 0; i < size; i++) {
+            tVectors[i] = (tVectors[i] / size);
+        }
+
     }
 
-    public long[] compute() {
-        long[] result = new long[models.size()];
-        long len = models.size();
-        for (int i = 0; i < len; i++) {
-            result[i] = models.get(i).getTimeDown() - average(i);
-//            / divided by ?
+    public double compute(ArrayList<TapModel> userInput) {
+        double result = 0.0;
+        int size = userInput.size();
+
+        double deviation = getStandardDeviation(userInput);
+
+        for (int i = 0; i < size; i++) {
+            TapModel a = userInput.get(i);
+            result += (a.getTimeDown() - tVectors[i]) / deviation;
         }
+
         return result;
     }
 
-    public long average(int index) {
-        long result = 0;
-        for (int i = 0; i <= index; i++) {
-            result += models.get(i).getTimeDown();
+
+    public double getMean(ArrayList<TapModel> data) {
+        double sum = 0.0;
+        for (TapModel a : data) {
+            sum += a.getTimeDown();
         }
-        result = (result / (index + 1));
-        return result;
+        return sum / data.size();
     }
+
+    public double getVariance(ArrayList<TapModel> data) {
+        double mean = getMean(data);
+        double temp = 0;
+        for (TapModel a : data) {
+            temp += (mean - a.getTimeDown()) * (mean - a.getTimeDown());
+        }
+        return temp / data.size();
+    }
+
+    public double getStandardDeviation(ArrayList<TapModel> data) {
+        return Math.sqrt(getVariance(data));
+    }
+
 
 }
