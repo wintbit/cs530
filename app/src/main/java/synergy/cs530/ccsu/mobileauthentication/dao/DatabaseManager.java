@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import synergy.cs530.ccsu.mobileauthentication.TapModel;
 import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 import synergy.cs530.ccsu.mobileauthentication.dao.interfaces.TableFieldInterface;
 import synergy.cs530.ccsu.mobileauthentication.dao.models.Criterion;
@@ -958,7 +959,7 @@ public class DatabaseManager {
      * otherwise.
      */
     public synchronized int updateDataModel(TableFieldInterface tableField, ArrayList<Criterion>
-            valueSet,ArrayList<Criterion> whereConditions) {
+            valueSet, ArrayList<Criterion> whereConditions) {
         return updateDataModel(tableField, valueSet.toArray(new Criterion[valueSet.size()]),
                 whereConditions.toArray(new Criterion[whereConditions.size()]));
     }
@@ -1024,4 +1025,16 @@ public class DatabaseManager {
             onCreate(db);
         }
     }
+
+
+    public long[] getTemplateVectors() {
+
+        return null;
+    }
+
+    public HashMap<Integer, ArrayList<TapModel>> getTemplateTapModels() {
+
+        return null;
+    }
+
 }

@@ -151,6 +151,7 @@ public class TapCodeActivity extends AppCompatActivity implements
                             Toast.makeText(getApplicationContext(),
                                     "Tap-Sequence Recorded", Toast.LENGTH_SHORT).show();
 
+                            //insert into database
                             if (BuildConfig.DEBUG) {
                                 //Feature is only available for developers ONLY.
                                 boolean exported = AppConstants.generateCSVFile(this, mSequenceMap);
