@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import synergy.cs530.ccsu.mobileauthentication.AppConstants;
 import synergy.cs530.ccsu.mobileauthentication.TapModel;
 import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 import synergy.cs530.ccsu.mobileauthentication.dao.interfaces.TableFieldInterface;
@@ -910,6 +911,88 @@ public class DatabaseManager {
         return updateDataModel(tableField, new Criterion[]{valueSet}, new Criterion[]{whereCondition});
     }
 
+    public synchronized ArrayList<TapModel>[] getTapModelSequenceSet() {
+        ArrayList<TapModel>[] result = new ArrayList[AppConstants.MAX_SEQUENCE_LIMIT];
+        for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
+            result[i] = new ArrayList<TapModel>();
+        }
+        ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID);
+        for (DataModel dataModel : dataModels) {
+            int seqIdx = dataModel.getInt(TapSequenceTableEnum.KEY_SEQUENCE_ID, -1);
+            if (seqIdx > -1) {
+                TapModel tapModel = new TapModel();
+                tapModel.setY(dataModel.getFloat(TapSequenceTableEnum.KEY_Y_AXIS, -1));
+                tapModel.setX(dataModel.getFloat(TapSequenceTableEnum.KEY_X_AXIS, -1));
+                tapModel.setTimeDown(dataModel.getFloat(TapSequenceTableEnum.KEY_TOUCHDOWN, -1));
+                tapModel.setTimeUp(dataModel.getFloat(TapSequenceTableEnum.Key_TOUCHUP, -1));
+                result[seqIdx].add(tapModel);
+            }
+        }
+
+        return result;
+    }
+
+
+    public synchronized double[][] getSequenceSetTouchDown() {
+
+        int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
+        double[][] result = new double[AppConstants.MAX_SEQUENCE_LIMIT][count / AppConstants.MAX_SEQUENCE_LIMIT];
+
+        ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID);
+        for (DataModel dataModel : dataModels) {
+            int seqIdx = dataModel.getInt(TapSequenceTableEnum.KEY_SEQUENCE_ID, -1);
+            if (seqIdx > -1) {
+                int idx = result[seqIdx].length;
+                result[seqIdx][idx] = dataModel.getDouble(TapSequenceTableEnum.KEY_TOUCHDOWN, -1);
+            }
+        }
+        return result;
+    }
+
+    public synchronized double[][] getSequenceSetTouchUp() {
+
+        int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
+        double[][] result = new double[AppConstants.MAX_SEQUENCE_LIMIT][count / AppConstants.MAX_SEQUENCE_LIMIT];
+
+        ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID);
+        for (DataModel dataModel : dataModels) {
+            int seqIdx = dataModel.getInt(TapSequenceTableEnum.KEY_SEQUENCE_ID, -1);
+            if (seqIdx > -1) {
+                int idx = result[seqIdx].length;
+                result[seqIdx][idx] = dataModel.getDouble(TapSequenceTableEnum.Key_TOUCHUP, -1);
+            }
+        }
+        return result;
+    }
+
+
+    public synchronized boolean addSequenceSet(ArrayList<TapModel>[] sequenceSet) {
+        boolean result = false;
+        if (sequenceSet != null && sequenceSet.length > 0) {
+
+            int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
+            /*Table is NOT empty. Delete all items and add the new ones*/
+            if (count > 0) {
+                deleteDataModel(TapSequenceTableEnum.KEY_ROW_ID, (Criterion) null);
+            }
+            int size = sequenceSet.length;
+            for (int seqIdx = 0; seqIdx < size; seqIdx++) {
+                ArrayList<TapModel> sequence = sequenceSet[seqIdx];
+                int len = sequence.size();
+                for (int x = 0; x < len; x++) {
+                    TapModel tapModel = sequence.get(x);
+                    DataModel dataModel = new DataModel(TapSequenceTableEnum.KEY_ROW_ID);
+                    dataModel.put(TapSequenceTableEnum.KEY_SEQUENCE_ID, seqIdx);
+                    dataModel.put(TapSequenceTableEnum.KEY_TOUCHDOWN, tapModel.getTimeDown());
+                    dataModel.put(TapSequenceTableEnum.Key_TOUCHUP, tapModel.getTimeUp());
+                    dataModel.put(TapSequenceTableEnum.KEY_X_AXIS, tapModel.getX());
+                    dataModel.put(TapSequenceTableEnum.KEY_Y_AXIS, tapModel.getY());
+                    addDataModel(dataModel);
+                }
+            }
+        }
+        return result;
+    }
 
     /**
      * Updates the associated row(s) of a DataModel Object in the database.
@@ -1026,11 +1109,6 @@ public class DatabaseManager {
         }
     }
 
-
-    public long[] getTemplateVectors() {
-
-        return null;
-    }
 
     public HashMap<Integer, ArrayList<TapModel>> getTemplateTapModels() {
 
