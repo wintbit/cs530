@@ -1,9 +1,6 @@
 package synergy.cs530.ccsu.mobileauthentication.utils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-
-import synergy.cs530.ccsu.mobileauthentication.TapModel;
 
 /**
  * Created by ejwint on 11/17/15.
@@ -11,61 +8,106 @@ import synergy.cs530.ccsu.mobileauthentication.TapModel;
 public class Algorithm {
 
 
-    private long[] templateVectors;
+    private double[][] sequenceSet;
+    private long[] templateAverages;
+    private double[] deviations;
+    private double[][] set;
+    private int sequenceSize;
 
-    public Algorithm(HashMap<Integer, ArrayList<TapModel>> models) {
-        if (models != null) {
-            int size = models.get(0).size();
-            templateVectors = new long[models.get(0).size()];
-            for (ArrayList<TapModel> values : models.values()) {
-                int len = values.size();
-                for (int i = 0; i < len; i++) {
-                    templateVectors[i] += values.get(i).getTimeDown();
+
+    public Algorithm(double[][] sequenceSet) {
+        this.sequenceSet = sequenceSet;
+        if (sequenceSet != null && sequenceSet.length > 0) {
+
+            int sequenceSetSize = sequenceSet.length;
+            sequenceSize = sequenceSet[0].length;
+
+            set = new double[sequenceSize][sequenceSetSize];
+            templateAverages = new long[sequenceSize];
+            deviations = new double[sequenceSize];
+
+            for (int i = 0; i < sequenceSize; i++) {
+                double average = 0.0;
+                for (int x = 0; x < sequenceSetSize; x++) {
+                    double value = sequenceSet[x][i];
+
+                    double last = sequenceSet[x][sequenceSize - 1];
+
+                    value = (value / last);
+
+                    average += value;
+                    set[i][x] = value;
                 }
-            }
-            for (int i = 0; i < size; i++) {
-                templateVectors[i] = (templateVectors[i] / size);
+                /* Compute the average " T[ T(i) ] " averages */
+                average = (average / sequenceSetSize);
+
+                /* Compute the standard deviation  of " T[ T(i) ] " */
+                deviations[i] = standardDeviation(set[i], average);
             }
         }
     }
 
-    public Algorithm(long[] templateVectors) {
-        this.templateVectors = templateVectors;
+
+
+    public double compute(ArrayList<Long> userInput) {
+        double result = 0.0;
+        if (null != userInput && userInput.size() == sequenceSize) {
+            int size = userInput.size();
+            for (int i = 0; i < size; i++) {
+                double X = userInput.get(i);
+                double T = templateAverages[i];
+                double deviation = deviations[i];
+                double minus = (X - T);
+                result += Math.abs((minus / deviation));
+            }
+            userInput.clear();
+        }
+        return result;
     }
 
-
-    public double compute(ArrayList<TapModel> userInput) {
-        double result = 0.0;
-        int size = userInput.size();
-        double deviation = getStandardDeviation(userInput);
-        for (int i = 0; i < size; i++) {
-            TapModel a = userInput.get(i);
-            result += (a.getTimeDown() - templateVectors[i]) / deviation;
+    public double[] computeAccuracy(ArrayList<Long> userInput) {
+        double[] result = null;
+        if (null != userInput && userInput.size() == sequenceSize) {
+            int size = userInput.size();
+            result = new double[size];
+            for (int i = 0; i < size; i++) {
+                double X = userInput.get(i);
+                double T = templateAverages[i];
+                double deviation = deviations[i];
+                double minus = (X - T);
+                result[i] = Math.abs((minus / deviation));
+            }
+            userInput.clear();
         }
         return result;
     }
 
 
-    public double getMean(ArrayList<TapModel> data) {
-        double sum = 0.0;
-        for (TapModel a : data) {
-            sum += a.getTimeDown();
+    public static double standardDeviation(double[] data, double average) {
+        double result = 0;
+        int size = data.length;
+        for (double item : data) {
+            /*Summation  sqrt( (x-X)^2 ) */
+            result += Math.pow((item - average), 2);
         }
-        return sum / data.size();
+        /*Divide by size of element in collection*/
+        result = (result / size);
+        /* Bessel correction */
+        return Math.sqrt(result);
     }
 
-    public double getVariance(ArrayList<TapModel> data) {
-        double mean = getMean(data);
-        double temp = 0;
-        for (TapModel a : data) {
-            temp += (mean - a.getTimeDown()) * (mean - a.getTimeDown());
+
+    public static void main(String[] args) {
+        double[] data = {2, 4, 4, 4, 5, 5, 7, 9};
+        long average = 0;
+        for (double i : data) {
+            average += i;
         }
-        return temp / data.size();
+        average = average / data.length;
+
+        double result = Algorithm.standardDeviation(data, average);
+        System.out.println("Result " + result);
+
+
     }
-
-    public double getStandardDeviation(ArrayList<TapModel> data) {
-        return Math.sqrt(getVariance(data));
-    }
-
-
 }
