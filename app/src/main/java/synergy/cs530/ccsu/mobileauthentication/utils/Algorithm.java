@@ -33,7 +33,7 @@ public class Algorithm {
 
                     double last = sequenceSet[x][sequenceSize - 1];
 
-                    value = (value / last);
+                    value = (value / last) * 1.1;
 
                     average += value;
                     set[i][x] = value;
