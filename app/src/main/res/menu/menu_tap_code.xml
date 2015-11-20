@@ -4,12 +4,6 @@
     tools:context="synergy.cs530.ccsu.mobileauthentication.TapCodeActivity">
 
     <item
-        android:id="@+id/action_export_sequence"
-        android:orderInCategory="100"
-        android:title="@string/action_export_sequence"
-        app:showAsAction="ifRoom|collapseActionView" />
-
-    <item
         android:id="@+id/action_developer"
         android:orderInCategory="100"
         android:title="@string/action_developer"

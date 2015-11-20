@@ -58,7 +58,6 @@ public class Algorithm {
                 double minus = (X - T);
                 result += Math.abs((minus / deviation));
             }
-            userInput.clear();
         }
         return result;
     }

@@ -8,9 +8,5 @@
         android:orderInCategory="100"
         android:title="@string/action_export"
         app:showAsAction="ifRoom|collapseActionView" />
-    <item
-        android:id="@+id/action_reset"
-        android:orderInCategory="100"
-        android:title="@string/action_reset"
-        app:showAsAction="ifRoom|collapseActionView" />
+
 </menu>

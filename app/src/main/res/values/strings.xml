@@ -11,6 +11,7 @@
     <string name="tables">Tables :</string>
     <string name="add">Add</string>
     <string name="reset">Reset</string>
+    <string name="test">Test</string>
     <string name="login">Login</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
@@ -27,6 +28,7 @@
     <string name="notification_mis_match">Do not Match</string>
 
     <string name="notification_"> </string>
+    <string name="modify">Modify</string>
 
 
 </resources>

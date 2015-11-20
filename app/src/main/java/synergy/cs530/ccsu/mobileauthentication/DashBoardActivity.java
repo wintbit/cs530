@@ -13,11 +13,14 @@ import synergy.cs530.ccsu.mobileauthentication.dao.DatabaseManager;
 import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 
 
-public class DashBoardActivity extends AppCompatActivity implements OnClickListener {
+public class DashBoardActivity extends AppCompatActivity {
 
     private final String TAG = this.getClass().getName();
-    private Button mConfigureButton;
+
+    private final static int RESULT_SET_REQUEST = 33;
+
     private DatabaseManager databaseManager;
+    private Button testButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +29,30 @@ public class DashBoardActivity extends AppCompatActivity implements OnClickListe
 
         databaseManager = DatabaseManager.getInstance(getApplicationContext());
 
-        mConfigureButton = (Button) findViewById(
-                R.id.fragment_dash_board_toggleButton);
-        mConfigureButton.setOnClickListener(this);
+        Button modifyButton = (Button) findViewById(
+                R.id.fragment_dash_board_modify_Button);
+        modifyButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DashBoardActivity.this,
+                        TapCodeActivity.class);
+                startActivityForResult(intent, RESULT_SET_REQUEST);
+            }
+        });
 
-        if (databaseManager.getRowCount(TapSequenceTableEnum.KEY_ROW_ID) > 0) {
-            mConfigureButton.setText(getResources().getText(R.string.action_reset));
-        }
+        testButton = (Button) findViewById(
+                R.id.fragment_dash_board_test_Button);
+        testButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), AuthenticateActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        int count = databaseManager.getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
+        testButton.setEnabled((count > 0));
+
 
     }
 
@@ -48,23 +68,20 @@ public class DashBoardActivity extends AppCompatActivity implements OnClickListe
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        switch (id) {
-            case R.id.action_export_sequence:
-
-
-                break;
-        }
+//        int id = item.getItemId();
+//        switch (id) {}
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.fragment_dash_board_toggleButton) {
-            Intent i = new Intent(this, TapCodeActivity.class);
-            startActivity(i);
-        }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RESULT_SET_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                int count = databaseManager.getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
+                testButton.setEnabled((count > 0));
+            }
+        }
     }
 }
