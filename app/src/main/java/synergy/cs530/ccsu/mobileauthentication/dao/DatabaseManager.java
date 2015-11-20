@@ -932,8 +932,7 @@ public class DatabaseManager {
         return result;
     }
 
-
-    public synchronized double[][] getSequenceSetTouchDown() {
+    public synchronized double[][] getSequenceSetTouch(TableFieldInterface fieldInterface) {
 
         int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
         double[][] result = new double[AppConstants.MAX_SEQUENCE_LIMIT][count / AppConstants.MAX_SEQUENCE_LIMIT];
@@ -942,27 +941,23 @@ public class DatabaseManager {
         for (DataModel dataModel : dataModels) {
             int seqIdx = dataModel.getInt(TapSequenceTableEnum.KEY_SEQUENCE_ID, -1);
             if (seqIdx > -1) {
-                int idx = result[seqIdx].length;
-                result[seqIdx][idx] = dataModel.getDouble(TapSequenceTableEnum.KEY_TOUCHDOWN, -1);
+                int idx = 0;
+                if (result[seqIdx].length > 0) {
+                    idx = result[seqIdx].length - 1;
+                }
+                result[seqIdx][idx] = dataModel.getDouble(fieldInterface, -1);
             }
         }
         return result;
     }
 
+
+    public synchronized double[][] getSequenceSetTouchDown() {
+        return getSequenceSetTouch(TapSequenceTableEnum.KEY_TOUCHDOWN);
+    }
+
     public synchronized double[][] getSequenceSetTouchUp() {
-
-        int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
-        double[][] result = new double[AppConstants.MAX_SEQUENCE_LIMIT][count / AppConstants.MAX_SEQUENCE_LIMIT];
-
-        ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID);
-        for (DataModel dataModel : dataModels) {
-            int seqIdx = dataModel.getInt(TapSequenceTableEnum.KEY_SEQUENCE_ID, -1);
-            if (seqIdx > -1) {
-                int idx = result[seqIdx].length;
-                result[seqIdx][idx] = dataModel.getDouble(TapSequenceTableEnum.Key_TOUCHUP, -1);
-            }
-        }
-        return result;
+        return getSequenceSetTouch(TapSequenceTableEnum.Key_TOUCHUP);
     }
 
 
