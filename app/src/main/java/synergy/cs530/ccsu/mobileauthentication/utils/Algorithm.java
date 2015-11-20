@@ -49,7 +49,9 @@ public class Algorithm {
 
 
 
-    public double compute(ArrayList<Long> userInput) {
+
+
+    public double compute(ArrayList<Double> userInput) {
         double result = 0.0;
         if (null != userInput && userInput.size() == sequenceSize) {
             int size = userInput.size();
