@@ -47,10 +47,6 @@ public class Algorithm {
         }
     }
 
-
-
-
-
     public double compute(ArrayList<Double> userInput) {
         double result = 0.0;
         if (null != userInput && userInput.size() == sequenceSize) {
@@ -61,23 +57,6 @@ public class Algorithm {
                 double deviation = deviations[i];
                 double minus = (X - T);
                 result += Math.abs((minus / deviation));
-            }
-            userInput.clear();
-        }
-        return result;
-    }
-
-    public double[] computeAccuracy(ArrayList<Long> userInput) {
-        double[] result = null;
-        if (null != userInput && userInput.size() == sequenceSize) {
-            int size = userInput.size();
-            result = new double[size];
-            for (int i = 0; i < size; i++) {
-                double X = userInput.get(i);
-                double T = templateAverages[i];
-                double deviation = deviations[i];
-                double minus = (X - T);
-                result[i] = Math.abs((minus / deviation));
             }
             userInput.clear();
         }
