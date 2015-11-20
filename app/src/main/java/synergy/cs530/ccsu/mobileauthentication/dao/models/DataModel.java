@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import synergy.cs530.ccsu.mobileauthentication.BuildConfig;
-import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 import synergy.cs530.ccsu.mobileauthentication.dao.interfaces.TableFieldInterface;
 
 public class DataModel implements Serializable {
@@ -145,6 +144,13 @@ public class DataModel implements Serializable {
         }
     }
 
+    public void put(TableFieldInterface tableField, double value) {
+        if (null != tableField) {
+            put(tableField.getColumnName(), Double.toString(value));
+        }
+    }
+
+
     private String get(String field) {
         return (null != field && field.length() > 0) ? map.get(field) : null;
     }
@@ -258,7 +264,6 @@ public class DataModel implements Serializable {
         }
         return result;
     }
-
 
 
     public String toString() {

@@ -211,13 +211,13 @@ public class TapCodeActivity extends AppCompatActivity implements
                         Log.d(TAG, text);
                         tapModel = new TapModel();
                         //Get the initial tap info from the touch down
-                        tapModel.setTimeDown(rightNow.getTimeInMillis());
+                        tapModel.setTimeDown((double)rightNow.getTimeInMillis());
                         tapModel.setX(event.getX());
                         tapModel.setY(event.getY());
                         return true;
                     case MotionEvent.ACTION_UP:
                         if (null != tapModel) {
-                            tapModel.setTimeUp(rightNow.getTimeInMillis());
+                            tapModel.setTimeUp((double)rightNow.getTimeInMillis());
                             currentSequence.add(tapModel);
                         }
                         //Increment counter

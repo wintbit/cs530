@@ -7,8 +7,8 @@ public class TapModel {
 
     private float X;
     private float Y;
-    private float timeDown;
-    private float timeUp;
+    private double timeDown;
+    private double timeUp;
 
     public TapModel() {
     }
@@ -30,19 +30,19 @@ public class TapModel {
         Y = y;
     }
 
-    public float getTimeDown() {
+    public double getTimeDown() {
         return timeDown;
     }
 
-    public void setTimeDown(float timeDown) {
+    public void setTimeDown(double timeDown) {
         this.timeDown = timeDown;
     }
 
-    public float getTimeUp() {
+    public double getTimeUp() {
         return timeUp;
     }
 
-    public void setTimeUp(float timeUp) {
+    public void setTimeUp(double timeUp) {
         this.timeUp = timeUp;
     }
 

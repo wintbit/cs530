@@ -834,6 +834,39 @@ public class DatabaseManager {
     }
 
 
+    public ArrayList<DataModel> getDataModels(TableFieldInterface tableField, Criterion criterion) {
+        ArrayList<DataModel> result = new ArrayList<>();
+        try {
+            if (null != tableField && null != criterion ) {
+                Cursor cursor = sqliteDatabase.query(true,
+                        tableField.getTableName(),
+                        null,
+                        criterion.getClause(),
+                        null,
+                        null, null, null, null);
+
+                if (cursor.moveToFirst()) {
+                    int colCount = cursor.getColumnCount();
+                    do {
+                        DataModel model = new DataModel(tableField.getTableName());
+                        for (int idx = 0; idx < colCount; idx++) {
+                            String colName = cursor.getColumnName(idx);
+                            String colVal = cursor.getString(idx);
+                            model.put(colName, colVal);
+                        }
+                        result.add(model);
+                    } while (cursor.moveToNext());
+                    cursor.close();
+                }
+            }
+        } catch (SQLException ex) {
+            Log.e(TAG, ex.getMessage());
+        }
+        return result;
+    }
+
+
+
     /**
      * Deletes the associated row of the DataModel object in the database.
      *
@@ -935,17 +968,17 @@ public class DatabaseManager {
     public synchronized double[][] getSequenceSetTouch(TableFieldInterface fieldInterface) {
 
         int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
-        double[][] result = new double[AppConstants.MAX_SEQUENCE_LIMIT][count / AppConstants.MAX_SEQUENCE_LIMIT];
+        count = count / AppConstants.MAX_SEQUENCE_LIMIT;
 
-        ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID);
-        for (DataModel dataModel : dataModels) {
-            int seqIdx = dataModel.getInt(TapSequenceTableEnum.KEY_SEQUENCE_ID, -1);
-            if (seqIdx > -1) {
-                int idx = 0;
-                if (result[seqIdx].length > 0) {
-                    idx = result[seqIdx].length - 1;
-                }
-                result[seqIdx][idx] = dataModel.getDouble(fieldInterface, -1);
+        double[][] result = new double[AppConstants.MAX_SEQUENCE_LIMIT][count]
+                ;
+
+        for(int i=0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++){
+            ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID,
+                    new Criterion(TapSequenceTableEnum.KEY_SEQUENCE_ID, i));
+            int size = dataModels.size();
+            for(int x =0; x< size; x++){
+                result[i][x] = dataModels.get(x).getDouble(fieldInterface, -1);
             }
         }
         return result;
