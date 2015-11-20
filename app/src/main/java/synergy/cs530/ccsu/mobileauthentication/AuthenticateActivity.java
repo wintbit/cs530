@@ -12,6 +12,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import synergy.cs530.ccsu.mobileauthentication.dao.DatabaseManager;
+import synergy.cs530.ccsu.mobileauthentication.enums.NotificationEnum;
 import synergy.cs530.ccsu.mobileauthentication.utils.Algorithm;
 
 
@@ -82,9 +83,35 @@ public class AuthenticateActivity extends AppCompatActivity implements
         sequenceTouchDown.clear();
         sequenceTouchup.clear();
         //Display message to user
+        if (BuildConfig.DEBUG) {
+            Toast.makeText(getApplicationContext(),
+                    "Down: " + resultTouchDown + ",\n" +
+                            " Up: " + resultTouchUp,
+                    Toast.LENGTH_SHORT).show();
+        }
+        /*Indicates a incorrect number of tap sequences entered*/
+        if (resultTouchDown < 0.0 && resultTouchUp < 0.0) {
+            displayNotification(NotificationEnum.NO_ENTRY);
+        } 
+        /*Indicates the accepted threshold of a user tapped sequence*/
+        else if (resultTouchDown < AppConstants.ACCEPTED_THRESHOLD &&
+                resultTouchUp < AppConstants.ACCEPTED_THRESHOLD) {
+            displayNotification(NotificationEnum.SUCCESS);
+            if(BuildConfig.DEBUG){
+                /*If the values is accepted we could insert this value into the database 
+                * to be able increase the users sample data.*/
+            }
+        }
+        /*Indicated a incorrect tap sequence and duration of tap sequence entered.*/
+        else {
+            displayNotification(NotificationEnum.TRY_AGAIN);
+        }
+    }
+
+    private void displayNotification(NotificationEnum notificationEnums) {
         Toast.makeText(getApplicationContext(),
-                "Down: " + resultTouchDown + ",\n" +
-                        " Up: " + resultTouchUp,
+                notificationEnums.getValue(),
                 Toast.LENGTH_SHORT).show();
     }
+
 }
