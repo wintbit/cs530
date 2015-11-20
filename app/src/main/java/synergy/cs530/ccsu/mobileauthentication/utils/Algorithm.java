@@ -1,5 +1,7 @@
 package synergy.cs530.ccsu.mobileauthentication.utils;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 /**
@@ -8,39 +10,48 @@ import java.util.ArrayList;
 public class Algorithm {
 
 
-    private double[][] sequenceSet;
-    private long[] templateAverages;
+    private double[] templateAverages;
     private double[] deviations;
     private double[][] set;
     private int sequenceSize;
 
 
+    /**
+     * Create a instace of Algorithm with given parameters
+     *
+     * @param sequenceSet a double array that contains collections of test sequences
+     */
     public Algorithm(double[][] sequenceSet) {
-        this.sequenceSet = sequenceSet;
+        /*
+        *  sequenceSet [x][i]
+        *  x = the current index OF a sequence
+         * i = the current position WITH-IN a sequence
+        * */
+
         if (sequenceSet != null && sequenceSet.length > 0) {
 
             int sequenceSetSize = sequenceSet.length;
             sequenceSize = sequenceSet[0].length;
 
             set = new double[sequenceSize][sequenceSetSize];
-            templateAverages = new long[sequenceSize];
+            templateAverages = new double[sequenceSize];
             deviations = new double[sequenceSize];
 
             for (int i = 0; i < sequenceSize; i++) {
                 double average = 0.0;
                 for (int x = 0; x < sequenceSetSize; x++) {
                     double value = sequenceSet[x][i];
-
+                    //Get the last value from the
                     double last = sequenceSet[x][sequenceSize - 1];
-
-                    value = (value / last) * 1.1;
+                    /*Normalize the data*/
+                    value = (value / last);
 
                     average += value;
                     set[i][x] = value;
                 }
                 /* Compute the average " T[ T(i) ] " averages */
                 average = (average / sequenceSetSize);
-
+                templateAverages[i] = average;
                 /* Compute the standard deviation  of " T[ T(i) ] " */
                 deviations[i] = standardDeviation(set[i], average);
             }
@@ -51,13 +62,19 @@ public class Algorithm {
         double result = 0.0;
         if (null != userInput && userInput.size() == sequenceSize) {
             int size = userInput.size();
-            for (int i = 0; i < size; i++) {
+            StringBuffer sb = new StringBuffer();
+//            double[] bin = new double[size];
+            for (int i = 0; i < size ; i++) {
                 double X = userInput.get(i);
                 double T = templateAverages[i];
                 double deviation = deviations[i];
                 double minus = (X - T);
-                result += Math.abs((minus / deviation));
+                double value = Math.abs((minus / deviation));
+//                bin[i] = value;
+                sb.append(String.format("[%s]: %s | ", i, value));
+                result += value;
             }
+            Log.d("Algorithm", sb.toString());
         }
         return result;
     }
