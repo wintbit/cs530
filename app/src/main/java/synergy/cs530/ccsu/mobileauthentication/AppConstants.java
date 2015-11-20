@@ -20,6 +20,9 @@ public class AppConstants {
     private static String TAG = "AppConstants";
 
 
+    public static final double ACCEPTED_THRESHOLD = 20.0;
+
+
     public static final int MAX_SEQUENCE_LIMIT = 3;
     public static final int MAX_TAP_LIMIT = 15;
 
