@@ -12,8 +12,8 @@ public class Algorithm {
 
     private double[] templateAverages;
     private double[] deviations;
-    private double[][] set;
-    private int sequenceSize;
+
+    private int columnCount;
 
 
     /**
@@ -30,53 +30,57 @@ public class Algorithm {
 
         if (sequenceSet != null && sequenceSet.length > 0) {
 
-            int sequenceSetSize = sequenceSet.length;
-            sequenceSize = sequenceSet[0].length;
+            int rowCount = sequenceSet.length;
+            columnCount = sequenceSet[0].length;
+            double[][] set = new double[columnCount][rowCount];
+            templateAverages = new double[columnCount];
+            deviations = new double[columnCount];
 
-            set = new double[sequenceSize][sequenceSetSize];
-            templateAverages = new double[sequenceSize];
-            deviations = new double[sequenceSize];
-
-            for (int i = 0; i < sequenceSize; i++) {
+            for (int column = 0; column < columnCount; column++) {
                 double average = 0.0;
-                for (int x = 0; x < sequenceSetSize; x++) {
-                    double value = sequenceSet[x][i];
+                for (int row = 0; row < rowCount; row++) {
+                    double value = sequenceSet[row][column];
                     //Get the last value from the
-                    double last = sequenceSet[x][sequenceSize - 1];
+                    double last = sequenceSet[row][columnCount - 1];
                     /*Normalize the data*/
                     value = (value / last);
-
                     average += value;
-                    set[i][x] = value;
+                    set[column][row] = value;
                 }
-                /* Compute the average " T[ T(i) ] " averages */
-                average = (average / sequenceSetSize);
-                templateAverages[i] = average;
-                /* Compute the standard deviation  of " T[ T(i) ] " */
-                deviations[i] = standardDeviation(set[i], average);
+                /* Compute the average " T[ T(column) ] " averages */
+                average = (average / rowCount);
+                templateAverages[column] = average;
+                /* Compute the standard deviation  of " T[ T(column) ] " */
+                deviations[column] = standardDeviation(set[column], average);
             }
         }
     }
 
     public double compute(ArrayList<Double> userInput) {
         double result = 0.0;
-        if (null != userInput && userInput.size() == sequenceSize) {
+        if (null != userInput && userInput.size() == columnCount) {
             int size = userInput.size();
             StringBuffer sb = new StringBuffer();
-//            double[] bin = new double[size];
-            for (int i = 0; i < size ; i++) {
-                double X = userInput.get(i);
-                double T = templateAverages[i];
-                double deviation = deviations[i];
-                double minus = (X - T);
-                double value = Math.abs((minus / deviation));
-//                bin[i] = value;
-                sb.append(String.format("[%s]: %s | ", i, value));
+            double last = userInput.get(size - 1);
+            for (int column = 0; column < size; column++) {
+                double value = 0.0;
+                double deviation = deviations[column];
+                /*Can't divide by ZERO*/
+                if (deviation > 0.0) {
+                    /*Need to normalize the input from the user as well.
+                     If everything has been normalized.*/
+                    double xNormalized = (userInput.get(column) / last);
+                    double T = templateAverages[column];
+                    double minus = (xNormalized - T);
+                    value = Math.abs((minus / deviation));
+                }
+                sb.append(String.format("[%s]: %s | ", column, value));
                 result += value;
             }
             Log.d("Algorithm", sb.toString());
         }
         return result;
+
     }
 
 
