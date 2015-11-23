@@ -57,7 +57,7 @@ public class Algorithm {
     }
 
     public double compute(ArrayList<Double> userInput) {
-        double result = 0.0;
+        double result = -1.0;
         if (null != userInput && userInput.size() == columnCount) {
             int size = userInput.size();
             StringBuffer sb = new StringBuffer();
@@ -85,7 +85,7 @@ public class Algorithm {
 
 
     public static double standardDeviation(double[] data, double average) {
-        double result = 0;
+        double result = 0.0;
         int size = data.length;
         for (double item : data) {
             /*Summation  sqrt( (x-X)^2 ) */
