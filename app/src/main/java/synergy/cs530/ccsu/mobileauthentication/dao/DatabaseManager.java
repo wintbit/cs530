@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import synergy.cs530.ccsu.mobileauthentication.AppConstants;
+import synergy.cs530.ccsu.mobileauthentication.TapModel;
 import synergy.cs530.ccsu.mobileauthentication.dao.enums.TapSequenceTableEnum;
 import synergy.cs530.ccsu.mobileauthentication.dao.interfaces.TableFieldInterface;
 import synergy.cs530.ccsu.mobileauthentication.dao.models.Criterion;
@@ -832,6 +834,39 @@ public class DatabaseManager {
     }
 
 
+    public ArrayList<DataModel> getDataModels(TableFieldInterface tableField, Criterion criterion) {
+        ArrayList<DataModel> result = new ArrayList<>();
+        try {
+            if (null != tableField && null != criterion ) {
+                Cursor cursor = sqliteDatabase.query(true,
+                        tableField.getTableName(),
+                        null,
+                        criterion.getClause(),
+                        null,
+                        null, null, null, null);
+
+                if (cursor.moveToFirst()) {
+                    int colCount = cursor.getColumnCount();
+                    do {
+                        DataModel model = new DataModel(tableField.getTableName());
+                        for (int idx = 0; idx < colCount; idx++) {
+                            String colName = cursor.getColumnName(idx);
+                            String colVal = cursor.getString(idx);
+                            model.put(colName, colVal);
+                        }
+                        result.add(model);
+                    } while (cursor.moveToNext());
+                    cursor.close();
+                }
+            }
+        } catch (SQLException ex) {
+            Log.e(TAG, ex.getMessage());
+        }
+        return result;
+    }
+
+
+
     /**
      * Deletes the associated row of the DataModel object in the database.
      *
@@ -909,6 +944,83 @@ public class DatabaseManager {
         return updateDataModel(tableField, new Criterion[]{valueSet}, new Criterion[]{whereCondition});
     }
 
+    public synchronized ArrayList<TapModel>[] getTapModelSequenceSet() {
+        ArrayList<TapModel>[] result = new ArrayList[AppConstants.MAX_SEQUENCE_LIMIT];
+        for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
+            result[i] = new ArrayList<TapModel>();
+        }
+        ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID);
+        for (DataModel dataModel : dataModels) {
+            int seqIdx = dataModel.getInt(TapSequenceTableEnum.KEY_SEQUENCE_ID, -1);
+            if (seqIdx > -1) {
+                TapModel tapModel = new TapModel();
+                tapModel.setY(dataModel.getFloat(TapSequenceTableEnum.KEY_Y_AXIS, -1));
+                tapModel.setX(dataModel.getFloat(TapSequenceTableEnum.KEY_X_AXIS, -1));
+                tapModel.setTimeDown(dataModel.getFloat(TapSequenceTableEnum.KEY_TOUCHDOWN, -1));
+                tapModel.setTimeUp(dataModel.getFloat(TapSequenceTableEnum.Key_TOUCHUP, -1));
+                result[seqIdx].add(tapModel);
+            }
+        }
+
+        return result;
+    }
+
+    public synchronized double[][] getSequenceSetTouch(TableFieldInterface fieldInterface) {
+
+        int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
+        count = count / AppConstants.MAX_SEQUENCE_LIMIT;
+
+        double[][] result = new double[AppConstants.MAX_SEQUENCE_LIMIT][count]
+                ;
+
+        for(int i=0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++){
+            ArrayList<DataModel> dataModels = getDataModels(TapSequenceTableEnum.KEY_ROW_ID,
+                    new Criterion(TapSequenceTableEnum.KEY_SEQUENCE_ID, i));
+            int size = dataModels.size();
+            for(int x =0; x< size; x++){
+                result[i][x] = dataModels.get(x).getDouble(fieldInterface, -1);
+            }
+        }
+        return result;
+    }
+
+
+    public synchronized double[][] getSequenceSetTouchDown() {
+        return getSequenceSetTouch(TapSequenceTableEnum.KEY_TOUCHDOWN);
+    }
+
+    public synchronized double[][] getSequenceSetTouchUp() {
+        return getSequenceSetTouch(TapSequenceTableEnum.Key_TOUCHUP);
+    }
+
+
+    public synchronized boolean addSequenceSet(ArrayList<TapModel>[] sequenceSet) {
+        boolean result = false;
+        if (sequenceSet != null && sequenceSet.length > 0) {
+
+            int count = getRowCount(TapSequenceTableEnum.KEY_ROW_ID);
+            /*Table is NOT empty. Delete all items and add the new ones*/
+            if (count > 0) {
+                deleteDataModel(TapSequenceTableEnum.KEY_ROW_ID, (Criterion) null);
+            }
+            int size = sequenceSet.length;
+            for (int seqIdx = 0; seqIdx < size; seqIdx++) {
+                ArrayList<TapModel> sequence = sequenceSet[seqIdx];
+                int len = sequence.size();
+                for (int x = 0; x < len; x++) {
+                    TapModel tapModel = sequence.get(x);
+                    DataModel dataModel = new DataModel(TapSequenceTableEnum.KEY_ROW_ID);
+                    dataModel.put(TapSequenceTableEnum.KEY_SEQUENCE_ID, seqIdx);
+                    dataModel.put(TapSequenceTableEnum.KEY_TOUCHDOWN, tapModel.getTimeDown());
+                    dataModel.put(TapSequenceTableEnum.Key_TOUCHUP, tapModel.getTimeUp());
+                    dataModel.put(TapSequenceTableEnum.KEY_X_AXIS, tapModel.getX());
+                    dataModel.put(TapSequenceTableEnum.KEY_Y_AXIS, tapModel.getY());
+                    addDataModel(dataModel);
+                }
+            }
+        }
+        return result;
+    }
 
     /**
      * Updates the associated row(s) of a DataModel Object in the database.
@@ -958,7 +1070,7 @@ public class DatabaseManager {
      * otherwise.
      */
     public synchronized int updateDataModel(TableFieldInterface tableField, ArrayList<Criterion>
-            valueSet,ArrayList<Criterion> whereConditions) {
+            valueSet, ArrayList<Criterion> whereConditions) {
         return updateDataModel(tableField, valueSet.toArray(new Criterion[valueSet.size()]),
                 whereConditions.toArray(new Criterion[whereConditions.size()]));
     }
@@ -1024,4 +1136,11 @@ public class DatabaseManager {
             onCreate(db);
         }
     }
+
+
+    public HashMap<Integer, ArrayList<TapModel>> getTemplateTapModels() {
+
+        return null;
+    }
+
 }

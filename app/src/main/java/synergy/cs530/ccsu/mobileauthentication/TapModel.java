@@ -5,49 +5,44 @@ package synergy.cs530.ccsu.mobileauthentication;
  */
 public class TapModel {
 
-    private int X;
-    private int Y;
-    private long timeDown;
-    private long timeUp;
+    private float X;
+    private float Y;
+    private double timeDown;
+    private double timeUp;
 
     public TapModel() {
     }
 
-    public TapModel(int x, int y, long time) {
-        X = x;
-        Y = y;
-        this.timeDown = time;
-    }
 
-    public int getX() {
+    public float getX() {
         return X;
     }
 
-    public void setX(int x) {
+    public void setX(float x) {
         X = x;
     }
 
-    public int getY() {
+    public float getY() {
         return Y;
     }
 
-    public void setY(int y) {
+    public void setY(float y) {
         Y = y;
     }
 
-    public long getTimeDown() {
+    public double getTimeDown() {
         return timeDown;
     }
 
-    public void setTimeDown(long timeDown) {
+    public void setTimeDown(double timeDown) {
         this.timeDown = timeDown;
     }
 
-    public long getTimeUp() {
+    public double getTimeUp() {
         return timeUp;
     }
 
-    public void setTimeUp(long timeUp) {
+    public void setTimeUp(double timeUp) {
         this.timeUp = timeUp;
     }
 

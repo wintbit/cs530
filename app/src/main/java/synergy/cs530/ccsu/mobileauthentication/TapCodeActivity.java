@@ -3,6 +3,7 @@ package synergy.cs530.ccsu.mobileauthentication;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -14,8 +15,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Calendar;
 
+import synergy.cs530.ccsu.mobileauthentication.dao.DatabaseManager;
 import synergy.cs530.ccsu.mobileauthentication.enums.NotificationEnum;
 
 public class TapCodeActivity extends AppCompatActivity implements
@@ -23,9 +25,11 @@ public class TapCodeActivity extends AppCompatActivity implements
 
     private final String TAG = this.getClass().getName();
 
-    private HashMap<Integer, ArrayList<TapModel>> mSequenceMap
-            = new HashMap<>();
+    private ArrayList<TapModel>[] sequenceSet
+            = new ArrayList[AppConstants.MAX_SEQUENCE_LIMIT];
+
     private int SEQ_INDEX = 0;
+
     private ArrayList<TapModel> currentSequence;
     private LinearLayout mLinearLayout;
     private TextView mInfoTextView;
@@ -65,10 +69,10 @@ public class TapCodeActivity extends AppCompatActivity implements
 
         //Create the sequence map.
         for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
-            mSequenceMap.put(i, new ArrayList<TapModel>());
+            sequenceSet[i] = new ArrayList<TapModel>();
         }
         //Set the initial sequence container using the SEQ_INDEX
-        currentSequence = mSequenceMap.get(SEQ_INDEX);
+        currentSequence = sequenceSet[SEQ_INDEX];
 
     }
 
@@ -85,14 +89,7 @@ public class TapCodeActivity extends AppCompatActivity implements
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
         switch (id) {
-            case R.id.action_settings:
-                return true;
             case R.id.action_developer:
                 if (BuildConfig.DEBUG) {
                     Intent intent = new Intent(this,
@@ -126,16 +123,16 @@ public class TapCodeActivity extends AppCompatActivity implements
                     if (SEQ_INDEX == 0) {
                         updateSequenceRadioButtonView(SEQ_INDEX, currentTapCount);
                         SEQ_INDEX++;
-                        currentSequence = mSequenceMap.get(SEQ_INDEX);
+                        currentSequence = sequenceSet[SEQ_INDEX];
                         currentTapCount = 0;
 
                     } else if (SEQ_INDEX == 1) {
-                        int previousTapCount = mSequenceMap.get(SEQ_INDEX - 1).size();
+                        int previousTapCount = sequenceSet[SEQ_INDEX - 1].size();
                         //If previous and current tap's match
                         if (previousTapCount == currentTapCount) {
                             updateSequenceRadioButtonView(SEQ_INDEX, currentTapCount);
                             SEQ_INDEX++;
-                            currentSequence = mSequenceMap.get(SEQ_INDEX);
+                            currentSequence = sequenceSet[SEQ_INDEX];
                             currentTapCount = 0;
                         } else {
                             //If previous and current tap's DON'T match
@@ -144,16 +141,22 @@ public class TapCodeActivity extends AppCompatActivity implements
                         }
                     } else if (SEQ_INDEX == 2) {
 
-                        int previousTapCount = mSequenceMap.get(SEQ_INDEX - 1).size();
+                        int previousTapCount = sequenceSet[SEQ_INDEX - 1].size();
                         //If previous and current tap's match
                         if (previousTapCount == currentTapCount) {
                             updateSequenceRadioButtonView(SEQ_INDEX, currentTapCount);
                             Toast.makeText(getApplicationContext(),
                                     "Tap-Sequence Recorded", Toast.LENGTH_SHORT).show();
 
+                            /* Add data to database */
+                            DatabaseManager databaseManager =
+                                    DatabaseManager.getInstance(getApplicationContext());
+                            databaseManager.addSequenceSet(sequenceSet);
+
+                            //insert into database
                             if (BuildConfig.DEBUG) {
                                 //Feature is only available for developers ONLY.
-                                boolean exported = AppConstants.generateCSVFile(this, mSequenceMap);
+                                boolean exported = AppConstants.generateCSVFile(this, sequenceSet);
                                 if (exported) {
                                     displayNotification(NotificationEnum.EXPORT_SEQUENCE_SUCCESS);
                                     resetSequencePatterns();
@@ -162,6 +165,11 @@ public class TapCodeActivity extends AppCompatActivity implements
                                     displayNotification(NotificationEnum.EXPORT_SEQUENCE_FAIL);
                                 }
                             }
+
+                            //Return to previous screen
+                            setResult(RESULT_OK);
+                            finish();
+
                         } else {
                             //If previous and current tap's DON'T match
                             //RESET current sequence can try again.
@@ -187,49 +195,43 @@ public class TapCodeActivity extends AppCompatActivity implements
     }
 
 
-    private long touchUpTime;
-    private long touchDowTime;
-    private int xAxis;
-    private int yAxis;
-    private TapModel tapModel = new TapModel();
+    private TapModel tapModel;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         //check to see if the user in is the correct range first.
-        if (currentTapCount < AppConstants.MAX_TAP_LIMIT
-                && SEQ_INDEX <= AppConstants.MAX_SEQUENCE_LIMIT) {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    //Get the initial tap info from the touch down
-                    touchDowTime = System.currentTimeMillis();
-                    xAxis = (int) event.getX();
-                    yAxis = (int) event.getY();
-
-                    return true;
-                case MotionEvent.ACTION_UP:
-
-                    touchUpTime = System.currentTimeMillis();
-                    tapModel.setTimeDown(touchDowTime);
-                    tapModel.setTimeUp(touchUpTime);
-                    tapModel.setX(xAxis);
-                    tapModel.setTimeUp(yAxis);
-                    currentSequence.add(tapModel);
-
-                    //Increment counter
-                    incrementTap();
-                    updateTapInfoView();
-
-                    return true;
+        if (v.getId() == R.id.activity_tap_code_linearLayout) {
+            if (currentTapCount < AppConstants.MAX_TAP_LIMIT
+                    && SEQ_INDEX <= AppConstants.MAX_SEQUENCE_LIMIT) {
+                Calendar rightNow = Calendar.getInstance();
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        String text = "X: " + event.getX() + ", Y: " + event.getY();
+//                        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+                        Log.d(TAG, text);
+                        tapModel = new TapModel();
+                        //Get the initial tap info from the touch down
+                        tapModel.setTimeDown((double)rightNow.getTimeInMillis());
+                        tapModel.setX(event.getX());
+                        tapModel.setY(event.getY());
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        if (null != tapModel) {
+                            tapModel.setTimeUp((double)rightNow.getTimeInMillis());
+                            currentSequence.add(tapModel);
+                        }
+                        //Increment counter
+                        incrementTap();
+                        updateTapInfoView();
+                        return true;
+                }
+            } else {
+                displayNotification(NotificationEnum.LIMIT_REACHED);
             }
-        } else {
-           displayNotification(NotificationEnum.LIMIT_REACHED);
         }
         return false;
     }
 
-    private void resetTap() {
-        currentTapCount = 0;
-    }
 
     private void incrementTap() {
         currentTapCount++;
@@ -252,7 +254,7 @@ public class TapCodeActivity extends AppCompatActivity implements
         resetSequenceMap();
         SEQ_INDEX = 0;
         currentTapCount = 0;
-        currentSequence = mSequenceMap.get(SEQ_INDEX);
+        currentSequence = sequenceSet[SEQ_INDEX];
         mInfoTextView.setText(null);
         updateSequenceRadioButtonView(-1, -1);
     }
@@ -262,7 +264,7 @@ public class TapCodeActivity extends AppCompatActivity implements
      */
     private void resetSequenceMap() {
         for (int i = 0; i < AppConstants.MAX_SEQUENCE_LIMIT; i++) {
-            ArrayList<TapModel> list = mSequenceMap.get(i);
+            ArrayList<TapModel> list = sequenceSet[i];
             if (list != null && !list.isEmpty()) {
                 list.clear();
             }

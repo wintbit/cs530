@@ -126,6 +126,12 @@ public class DataModel implements Serializable {
         }
     }
 
+    public void put(TableFieldInterface tableField, float value) {
+        if (null != tableField) {
+            put(tableField.getColumnName(), Float.toString(value));
+        }
+    }
+
     public void put(TableFieldInterface tableField, boolean value) {
         if (null != tableField) {
             put(tableField.getColumnName(), (value) ? 1 : 0);
@@ -137,6 +143,13 @@ public class DataModel implements Serializable {
             put(tableField.getColumnName(), value);
         }
     }
+
+    public void put(TableFieldInterface tableField, double value) {
+        if (null != tableField) {
+            put(tableField.getColumnName(), Double.toString(value));
+        }
+    }
+
 
     private String get(String field) {
         return (null != field && field.length() > 0) ? map.get(field) : null;
@@ -219,6 +232,40 @@ public class DataModel implements Serializable {
         return result;
     }
 
+    public float getFloat(TableFieldInterface tableField, float defaultValue) {
+        float result = defaultValue;
+        if (null != tableField) {
+            String res = get(tableField.getColumnName());
+            if (null != res) {
+                try {
+                    result = Float.parseFloat(res);
+                } catch (NumberFormatException ex) {
+                    Log.e(TAG + " getFloat(..)", String.format("key:%s, %s",
+                            tableField.getColumnName(), ex.getMessage()));
+                }
+            }
+        }
+        return result;
+
+    }
+
+    public double getDouble(TableFieldInterface tableField, double defaultValue) {
+        double result = defaultValue;
+        if (null != tableField) {
+            String res = get(tableField.getColumnName());
+            if (null != res) {
+                try {
+                    result = Double.parseDouble(res);
+                } catch (NumberFormatException ex) {
+                    Log.e(TAG + " getFloat(..)", String.format("key:%s, %s",
+                            tableField.getColumnName(), ex.getMessage()));
+                }
+            }
+        }
+        return result;
+    }
+
+
     public String toString() {
         StringBuilder sb = new StringBuilder(tableName);
         if (BuildConfig.DEBUG) {
@@ -257,5 +304,6 @@ public class DataModel implements Serializable {
     public boolean isKeyEmpty(TableFieldInterface fieldInterface) {
         return (null != fieldInterface && !map.isEmpty()) && map.containsKey(fieldInterface.getColumnName());
     }
+
 
 }

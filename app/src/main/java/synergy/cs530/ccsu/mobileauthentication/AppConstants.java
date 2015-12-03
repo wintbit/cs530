@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by ejwint on 9/28/15.
@@ -22,9 +20,17 @@ public class AppConstants {
     private static String TAG = "AppConstants";
 
 
+    public static final double ACCEPTED_THRESHOLD = 20.0;
+
+
     public static final int MAX_SEQUENCE_LIMIT = 3;
     public static final int MAX_TAP_LIMIT = 15;
 
+    private static final String CSV_HEADER[] = {
+
+            "seq_idx", "x-axis", "y-axis", "time-down", "time-up"
+
+    };
 
     public static File getExternalStorageDirectory(Context context) {
         // To be safe, you should check that the SDCard is mounted
@@ -44,7 +50,7 @@ public class AppConstants {
     }
 
     public static boolean generateCSVFile(Context context,
-                                          HashMap<Integer, ArrayList<TapModel>> sequences) {
+                                          ArrayList<TapModel>[] sequences) {
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
         boolean result = false;
@@ -61,16 +67,30 @@ public class AppConstants {
                 try {
                     FileWriter writer = new FileWriter(mediaFile);
 
-                    for (Map.Entry<Integer, ArrayList<TapModel>> entry : sequences.entrySet()) {
-                        Integer key = entry.getKey();
-                        ArrayList<TapModel> value = entry.getValue();
-                        for (TapModel tapModel : value) {
-                            writer.append(key.toString());
-                            writer.append(",");
+                    //write header
+                    int len = CSV_HEADER.length;
+                    for (int i = 0; i < len; i++) {
+                        writer.append(CSV_HEADER[i]);
+                        if (i < (len - 1)) {
+                            writer.append(", ");
+                        } else {
+                            writer.append("\r\n");
+                        }
+                    }
+
+
+                    int size = sequences.length;
+                    for (int i = 0; i < size; i++) {
+                        ArrayList<TapModel> values = sequences[i];
+                        for (TapModel tapModel : values) {
+                            writer.append(Integer.toString(i));
+                            writer.append(", ");
                             writer.append(tapModel.toString());
                             writer.append("\r\n");
                         }
                     }
+
+
                     //generate whatever data you want
                     writer.flush();
                     writer.close();
